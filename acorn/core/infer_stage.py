@@ -90,9 +90,12 @@ def lightning_infer(config, stage_module, checkpoint=None):
     # setup stage
     stage_module.setup(stage="predict")
 
+    accelerator = config.get("accelerator")
+    devices = config.get("devices")
+
     trainer = Trainer(
-        accelerator=config["accelerator"],
-        devices=config["devices"] or 1,
+        accelerator=accelerator,
+        devices=devices,
         num_nodes=config["nodes"],
     )
 

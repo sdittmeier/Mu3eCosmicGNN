@@ -171,9 +171,9 @@ class EventReader:
         csv_events = self.get_file_names(
             stage_dir, filename_terms=["particles", "truth"]
         )
-
-        assert len(csv_events) > 0, "No CSV files found!"
-
+        if len(csv_events) == 0:
+            warnings.warn(f"No event found in {stage_dir}")
+            return
         max_workers = (
             self.config["max_workers"] if "max_workers" in self.config else None
         )
