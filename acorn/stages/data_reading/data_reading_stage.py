@@ -83,9 +83,9 @@ class EventReader:
 
         reader = cls(config)
         reader.convert_to_csv()
-        reader._test_csv_conversion()
+        #reader._test_csv_conversion()
         reader._convert_to_pyg()
-        reader._test_pyg_conversion()
+        #reader._test_pyg_conversion()
 
         return reader
 
@@ -118,6 +118,7 @@ class EventReader:
         else:
             for event in tqdm(dataset, desc=f"Building {dataset_name} CSV files"):
                 self._build_single_csv(event, output_dir=output_dir)
+                
 
     def _build_single_csv(self, event, output_dir=None):
         """
@@ -149,12 +150,15 @@ class EventReader:
 
         particles = pd.read_csv(event["particles"])
         particles = particles.rename(columns={"eta": "eta_particle"})
+
         hits = pd.read_csv(event["truth"])
         hits, particles = self._merge_particles_to_hits(hits, particles)
         hits = self._add_handengineered_features(hits)
         hits = self._clean_noise_duplicates(hits)
+
         tracks, track_features, hits = self._build_true_tracks(hits)
         hits, particles, tracks = self._custom_processing(hits, particles, tracks)
+
         graph = self._build_graph(hits, tracks, track_features, event_id)
         self._save_pyg_data(graph, output_dir, event_id)
 
@@ -162,11 +166,14 @@ class EventReader:
         dataset = getattr(self, dataset_name)
         if dataset is None:
             return
+        
         stage_dir = os.path.join(self.config["stage_dir"], dataset_name)
         csv_events = self.get_file_names(
             stage_dir, filename_terms=["particles", "truth"]
         )
+
         assert len(csv_events) > 0, "No CSV files found!"
+
         max_workers = (
             self.config["max_workers"] if "max_workers" in self.config else None
         )
@@ -235,6 +242,7 @@ class EventReader:
         assert all(
             vertex in particles.columns for vertex in ["vx", "vy", "vz"]
         ), "Particles must have vertex information!"
+
         particle_features = self.config["feature_sets"]["track_features"] + [
             "vx",
             "vy",
@@ -249,6 +257,7 @@ class EventReader:
         assert (
             "particle_id" in hits.columns and "particle_id" in particles.columns
         ), "Hits and particles must have a particle_id column!"
+
         hits = hits.merge(
             particles[particle_features],
             on="particle_id",
@@ -289,19 +298,19 @@ class EventReader:
         return pixel_regions_index
 
     def _add_handengineered_features(self, hits):
-        pixel_regions_idx = self.get_pixel_regions_index(hits)
+        #pixel_regions_idx = self.get_pixel_regions_index(hits)
         assert all(
             col in hits.columns
             for col in [
                 "x",
                 "y",
                 "z",
-                "cluster_x_1",
-                "cluster_y_1",
-                "cluster_z_1",
-                "cluster_x_2",
-                "cluster_y_2",
-                "cluster_z_2",
+                #"cluster_x_1",
+                #"cluster_y_1",
+                #"cluster_z_1",
+                #"cluster_x_2",
+                #"cluster_y_2",
+                #"cluster_z_2",
             ]
         ), "Need to add (x,y,z) features"
         if "r" in self.config["feature_sets"]["hit_features"]:
@@ -315,7 +324,7 @@ class EventReader:
                 r, hits.z
             )  # TODO check if r is defined (same for clusters, below)
             hits = hits.assign(eta=eta)
-        if "cluster_r_1" in self.config["feature_sets"]["hit_features"]:
+        '''if "cluster_r_1" in self.config["feature_sets"]["hit_features"]:
             cluster_r_1 = np.sqrt(hits.cluster_x_1**2 + hits.cluster_y_1**2)
             cluster_r_1.loc[pixel_regions_idx] = r.loc[pixel_regions_idx]
             hits = hits.assign(cluster_r_1=cluster_r_1)
@@ -338,7 +347,7 @@ class EventReader:
         if "cluster_eta_2" in self.config["feature_sets"]["hit_features"]:
             cluster_eta_2 = self.calc_eta(cluster_r_2, hits.cluster_z_2)
             cluster_eta_2.loc[pixel_regions_idx] = eta.loc[pixel_regions_idx]
-            hits = hits.assign(cluster_eta_2=cluster_eta_2)
+            hits = hits.assign(cluster_eta_2=cluster_eta_2)'''
 
         return hits
 
@@ -384,6 +393,7 @@ class EventReader:
             .groupby(level=0)
             .agg(lambda x: list(x))
         )
+        print(signal_index_list[0])
 
         track_index_edges = []
         for row in signal_index_list.values:

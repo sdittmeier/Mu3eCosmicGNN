@@ -17,6 +17,7 @@ from .models.athena_root_reader import AthenaRootReader
 from .models.athena_cluster_reader import AthenaClusterReader
 from .models.trackml_reader import TrackMLReader
 from .models.acts_reader import ActsReader
+from .models.mu3e_cosmic_reader import Mu3eCosmicReader
 
 __all__ = [
     "AthenaReader",
