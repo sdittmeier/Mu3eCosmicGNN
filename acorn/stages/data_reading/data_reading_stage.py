@@ -393,7 +393,6 @@ class EventReader:
             .groupby(level=0)
             .agg(lambda x: list(x))
         )
-        print(signal_index_list[0])
 
         track_index_edges = []
         for row in signal_index_list.values:
