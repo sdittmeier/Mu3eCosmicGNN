@@ -216,7 +216,7 @@ class EventReader:
         """
         Save the PyG constructed graph
         """
-        torch.save(graph, os.path.join(output_dir, f"event{event_id}-graph.pyg"))
+        torch.save(graph, os.path.join(output_dir, "event{:09}-graph.pyg".format(int(event_id))))
 
     @staticmethod
     def calc_eta(r, z):

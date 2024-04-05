@@ -15,8 +15,10 @@ To Do:  -Create truth graphs
             ->Check if _build_all_pyg needs modifications
 '''
 
-def split_list(list, train_size, val_size, test_size):
-    #seed hinzufügen
+def split_list(list, train_size, val_size, test_size, seed=None):
+    if seed != None:
+        np.random.seed(seed)
+    
     np.random.shuffle(list)
     length = list.shape[0]
 
@@ -35,13 +37,14 @@ class Mu3eCosmicReader(EventReader):
         self.event_id_list = self.raw_events['event'].unique() # List of all unique eIDs
 
         # Split the data by 80/10/10: train/val/test -> train,val,test are lists of eIDs
-        self.trainset, self.valset, self.testset = split_list(self.event_id_list, 0.8, 0.1, 0.1)
+        self.trainset, self.valset, self.testset = split_list(self.event_id_list, 0.8, 0.1, 0.1, self.config['seed'])
     
     def _build_all_csv(self, dataset, dataset_name):
         if self.config['skip_csv'] == True:
+            print('Skipping building ', dataset_name,' CSVs')
             return
 
-        print('Building train, val and test csv files started!')
+        print('Building ',dataset_name,' csv files started!')
 
         output_dir = os.path.join(self.config["stage_dir"], dataset_name)
         os.makedirs(output_dir, exist_ok=True)
@@ -60,7 +63,7 @@ class Mu3eCosmicReader(EventReader):
             for event in tqdm(dataset, desc=f"Building {dataset_name} CSV files"):
                 self._build_single_csv(event, output_dir=output_dir)
 
-        print('Building train, val and test csv files completed!')
+        print('Building ',dataset_name,' csv files completed!')
 
     # Build single csv files for each track
     def _build_single_csv(self, event, output_dir=None):
@@ -117,28 +120,14 @@ class Mu3eCosmicReader(EventReader):
 
         event_path = os.path.join(output_dir, "event{:09}-truth.csv".format(int(event)))
         hits = pd.read_csv(event_path)
-        hits = hits.rename(columns={'tid': 'particle_id'})
-        hits = hits.assign(hit_id=list(range(1,len(hits['x'])+1)))
+        hits = hits.assign(vx = 0, vy=150, vz=0)
+        hits = self._process_hits(hits)
+        #extra particles files?
 
-        #Find hit in event with largest y and use this position as vertex location -> Maybe requires redo for more complex events
-        max_y_hit = hits.iloc[hits['y'].idxmax()]
-        mother_x = max_y_hit['x']
-        mother_y = max_y_hit['y']
-        mother_z = max_y_hit['z']
-        hits = hits.assign(vx=mother_x, vy=mother_y, vz=mother_z)
-
-        #Need to preprocess s.t. hits contains pid, hid, x,y,z,vx,vy,vz
-        # -> vertex position = x,y,z of mother particle? -> ask tamasi
-        #extra particles files
-        # -> used row number as hit_id -> correct?
         tracks, track_features, hits = self._build_true_tracks(hits) 
-        '''
-        Problems: Unsure what happens at/after grouping phase
-            What is signal_index_list
-        '''
-
+        
         #Further processing -> Not yet implemented (needed at all?)
-        hits, particles, tracks = self._custom_processing(hits, particles, tracks)
+        #hits, particles, tracks = self._custom_processing(hits, particles, tracks)
 
         graph = self._build_graph(hits, tracks, track_features, event_id)
         self._save_pyg_data(graph, output_dir, event_id)
@@ -162,11 +151,10 @@ class Mu3eCosmicReader(EventReader):
         )
         signal = hits[(hits.particle_id != 0)]
         signal = signal.sort_values("R").reset_index(drop=False)
-    	
+
         #layer_id and station_id
         module_columns = self.config["module_columns"]
 
-        #What does this do?
         signal_index_list = (
             signal.groupby(
                 ["particle_id"] + module_columns,
@@ -197,3 +185,24 @@ class Mu3eCosmicReader(EventReader):
         )
 
         return track_edges, track_features, hits
+    
+    def _process_hits(self, hits):
+        #Rename tid and layer
+        hits = hits.rename(columns={'tid': 'particle_id'})
+        hits = hits.rename(columns={'layer': 'layer_id'})
+
+        # Calculate the radius of the particle
+        hits['radius'] = np.sqrt(hits["vx"] ** 2 + hits["vy"] ** 2)
+
+        # Calculate the pT of the particle
+        hits['pt'] = np.sqrt(hits["px"] ** 2 + hits["py"] ** 2)
+
+        # Assign hit_ids
+        hits['hit_id'] = list(range(1,len(hits['x'])+1))
+
+        #Assign station_id: -1 for upstream recoil, 0 for central and +1 for downstream station
+        conditions = [(hits['z'] < -200), (hits['z'] < 200), (hits['z'] >= 200)]
+        ids = [-1, 0, 1]
+        hits['station_id'] = np.select(conditions, ids)
+
+        return hits
