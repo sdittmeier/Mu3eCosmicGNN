@@ -4,7 +4,7 @@ model: Mu3eCosmicReader
 input_dir: /mnt/data1/karres/cosmics_test/cosmics_data
 input_file: /mnt/data1/karres/cosmics_test/cosmics_data/cosmic_f1.csv
 stage_dir: /mnt/data1/karres/cosmics_test/feature_store/
-max_workers: 32
+max_workers: 64
 
 skip_csv: False
 seed: 1
@@ -12,4 +12,4 @@ seed: 1
 module_columns: [layer_id, station_id]
 feature_sets:
     hit_features: [hit_id, x, y, z]
-    track_features: [particle_id, pt, radius]
+    track_features: [particle_id, pt, radius, nhits]

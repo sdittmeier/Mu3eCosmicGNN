@@ -10,9 +10,21 @@ from ..data_reading_stage import EventReader
 from itertools import product
 
 '''
-To Do:  -Create truth graphs
-            ->Rewrite _build_single_pyg
-            ->Check if _build_all_pyg needs modifications
+Build truth graphs stops after ~1500 graphs
+    -> IndexError: arrays used as indices must be of integer (or boolean) type
+    -> track_index_edges probably the error
+    -> Other seeds also stop around that mark
+
+    Reason: Event 13032 and 17761 only have hits in layer 3 -> track_index_edges empty
+
+Event IDs weird: Some are missing -> Ask Tamasi
+
+Next steps:
+    -> Need additional module id for special cases like above
+        -Add in simulation or manual?
+    -> Implement nhits -> Done I think
+    -> Graph visualization: -> 'GlobalStorage' object has no attribute 'edge_index'
+                            -> Error in truth graph generation?
 '''
 
 def split_list(list, train_size, val_size, test_size, seed=None):
@@ -22,11 +34,46 @@ def split_list(list, train_size, val_size, test_size, seed=None):
     np.random.shuffle(list)
     length = list.shape[0]
 
+    print('In total',length,'events.')
+    print('Split into:')
+    print('Trainset:', train_size*length,'events')
+    print('Valnset:', val_size*length,'events')
+    print('Testset:', test_size*length,'events')
+
     trainset = list[:int(train_size*length)] 
     valset = list[int(train_size*length):int((train_size+val_size)*length)]
     testset = list[int((train_size+val_size)*length):]
 
+    print('Actual split:', trainset.size,';', valset.size,';', testset.size)
+    trainset = -np.sort(-trainset)
+    valset = -np.sort(-valset)
+    testset = -np.sort(-testset)
+
     return trainset, valset, testset
+
+def process_hits(hits):
+        #Rename tid and layer
+        hits = hits.rename(columns={'tid': 'particle_id'})
+        hits = hits.rename(columns={'layer': 'layer_id'})
+
+        # Calculate the pT of the particle
+        hits['pt'] = np.sqrt(hits["px"] ** 2 + hits["py"] ** 2)
+
+        # Calculate the radius of the particle
+        hits['radius'] = np.sqrt(hits["vx"] ** 2 + hits["vy"] ** 2)
+
+        #Assign nhits
+        hits['nhits'] = len(hits['x'])
+
+        # Assign hit_ids
+        hits['hit_id'] = list(range(1,len(hits['x'])+1))
+
+        #Assign station_id: -1 for upstream recoil, 0 for central and +1 for downstream recurl station
+        conditions = [(hits['z'] < -200), (hits['z'] < 200), (hits['z'] >= 200)]
+        ids = [-1, 0, 1]
+        hits['station_id'] = np.select(conditions, ids)
+
+        return hits
 
 class Mu3eCosmicReader(EventReader):
     def __init__(self, config):
@@ -46,14 +93,15 @@ class Mu3eCosmicReader(EventReader):
 
         print('Building ',dataset_name,' csv files started!')
 
-        output_dir = os.path.join(self.config["stage_dir"], dataset_name)
-        os.makedirs(output_dir, exist_ok=True)
+        dataset_dir = os.path.join(self.config["stage_dir"], dataset_name)
+        csv_dir = os.path.join(dataset_dir, 'csv')
+        os.makedirs(csv_dir, exist_ok=True)
 
         # Build CSV files, optionally with multiprocessing
         max_workers = self.config["max_workers"] if "max_workers" in self.config else 1
         if max_workers != 1:
             process_map(
-                partial(self._build_single_csv, output_dir=output_dir),
+                partial(self._build_single_csv, output_dir=csv_dir),
                 dataset,
                 max_workers=max_workers,
                 chunksize=1,
@@ -61,7 +109,7 @@ class Mu3eCosmicReader(EventReader):
             )
         else:
             for event in tqdm(dataset, desc=f"Building {dataset_name} CSV files"):
-                self._build_single_csv(event, output_dir=output_dir)
+                self._build_single_csv(event, output_dir=csv_dir)
 
         print('Building ',dataset_name,' csv files completed!')
 
@@ -87,7 +135,10 @@ class Mu3eCosmicReader(EventReader):
     def _build_all_pyg(self, dataset_name): #gets called by _convert_to_pyg
         print('Building truth graphs started!')
 
-        stage_dir = os.path.join(self.config["stage_dir"], dataset_name)
+        dataset_dir = os.path.join(self.config["stage_dir"], dataset_name)
+        graph_dir = os.path.join(dataset_dir, 'graphs')
+        os.makedirs(graph_dir, exist_ok=True)
+
         csv_events = getattr(self, dataset_name)
 
         assert len(csv_events) > 0, "No CSV files found!"
@@ -97,7 +148,7 @@ class Mu3eCosmicReader(EventReader):
         )
         if max_workers != 1:
             process_map(
-                partial(self._build_single_pyg_event, output_dir=stage_dir),
+                partial(self._build_single_pyg_event, output_dir=graph_dir),
                 csv_events,
                 max_workers=max_workers,
                 chunksize=1,
@@ -105,7 +156,7 @@ class Mu3eCosmicReader(EventReader):
             )
         else:
             for event in tqdm(csv_events, desc=f"Building {dataset_name} graphs"):
-                self._build_single_pyg_event(event, output_dir=stage_dir)
+                self._build_single_pyg_event(event, output_dir=graph_dir)
 
         print('Building truth graphs completed!')
 
@@ -114,33 +165,31 @@ class Mu3eCosmicReader(EventReader):
 
         event_id = event
 
-        if os.path.exists(os.path.join(output_dir, f"event{event_id}-graph.pyg")):
+        if os.path.exists(os.path.join(output_dir, "event{:09}-graph.pyg".format(int(event_id)))):
             print(f"Graph {event_id} already exists, skipping...")
             return
 
-        event_path = os.path.join(output_dir, "event{:09}-truth.csv".format(int(event)))
-        hits = pd.read_csv(event_path)
-        hits = hits.assign(vx = 0, vy=150, vz=0)
-        hits = self._process_hits(hits)
-        #extra particles files?
+        dataset_dir = os.path.dirname(output_dir)
+        event_path = os.path.join(dataset_dir, "csv/event{:09}-truth.csv".format(int(event_id)))
 
-        tracks, track_features, hits = self._build_true_tracks(hits) 
-        
-        #Further processing -> Not yet implemented (needed at all?)
-        #hits, particles, tracks = self._custom_processing(hits, particles, tracks)
+        hits = pd.read_csv(event_path)
+        hits = process_hits(hits)
+    
+        tracks, track_features, hits, flag = self._build_true_tracks(hits, event_id) 
+
+        #Skip this graph if track_index_edges is empty
+        if flag== True:
+            return
+
+        '''
+        Further processing -> What to process, needed?
+        hits, particles, tracks = self._custom_processing(hits, particles, tracks)
+        '''
 
         graph = self._build_graph(hits, tracks, track_features, event_id)
         self._save_pyg_data(graph, output_dir, event_id)
 
-    def _build_true_tracks(self, hits):
-        assert all(
-            col in hits.columns
-            for col in ["particle_id", "hit_id", "x", "y", "z", "vx", "vy", "vz"]
-        ), (
-            "Need to add (particle_id, hit_id), (x,y,z) and (vx,vy,vz) features to hits"
-            " dataframe in custom EventReader class"
-        )
-
+    def _build_true_tracks(self, hits, event_id):
         # Sort by increasing distance from production
         hits = hits.assign(
             R=np.sqrt(
@@ -155,6 +204,36 @@ class Mu3eCosmicReader(EventReader):
         #layer_id and station_id
         module_columns = self.config["module_columns"]
 
+        '''
+        hits is a dataframe containing the entries of the raw data, the added track features, module columns
+        signal is hits with added R (distance to vertex loc), filtered out noise and sorted by R
+
+        ['particle_id']+module_columns is a list of pID and detector ids
+        signal.groupby(...)['index'].agg(lambda x: list(x)) creates DataFrame of only index, pID and module IDs
+            -> output is dataframe with column of all unique particle ids, then layer id then station id
+            ->e.g. particle 1 hits in layer 3, station 0 twice -> row: 1,3,0, [0,1]
+            ->e.g. particle 1 hits in layer 3, station 0 and station -1 ->  1,3,0,[0]
+                                                                             ,3,-1,[1]
+            ->e.g. particle 1 hits in layer 3, station 0 twice and once in layer 2 station 0
+                ->  1,3,0,[0,3]
+                    1,2,0,[1,2]
+
+        .groupby(level=0).agg(lambda x: list(x)) groups by first level <-> pID
+            ->Output is dataframe with pID column and lists of list of indices
+            ->e.g. particle 1 hits in layer 3, station 0 twice and twice in layer 2 station 0
+                -> 1 [[0,2],[1]]
+            ->Get dataframe with rows corresponding to different particles
+
+        signal_index_list is the final dataframe
+
+        signal_index_list.values gives back a list of the lists in signal_index_values
+
+        track_index_edges is list of tuples
+
+        for row in signal_index_list.values:    -> picks a row
+            for i,j in zip(row[:-1], row[1:]):  -> i:that row without last value, j: that row without first value
+                track_index_edges.extend(list(product(i,j)))
+        '''
         signal_index_list = (
             signal.groupby(
                 ["particle_id"] + module_columns,
@@ -164,18 +243,32 @@ class Mu3eCosmicReader(EventReader):
             .groupby(level=0)
             .agg(lambda x: list(x))
         )
+        '''
+        signal_index_list is a dataframe with rows containing the particle_id and one list for each unique combination of module_ids
+        e.g. particle 58858 hits layer 3 twice (hit ids 0,2) and layer 2 (1,3) twice, all in the same station, the dataframe will be
+        58858 [[0,2],[1,3]]
+        '''
 
         track_index_edges = []
         for row in signal_index_list.values:
             for i, j in zip(row[:-1], row[1:]):
                 track_index_edges.extend(list(product(i, j)))
 
+        '''
+        track_index_edges is a list of all possible combinations of two values from signal_index_list
+        e.g. signal_index_list = [[0,2],[1,3]] -> track_index_edges = [(0,1),(0,3),(2,1),(2,3)]
+        '''
+        #Check if track_index_edges is empty -> Skip this graph if empty
+        if not track_index_edges:
+            print('Event', event_id, 'is a problem')
+            track_edges = track_features = hits = None
+            flag = True
+            
+            return track_edges, track_features, hits, flag
+                 
         track_index_edges = np.array(track_index_edges).T
         track_edges = hits.hit_id.values[track_index_edges]
-
-        assert (
-            hits[hits.hit_id.isin(track_edges.flatten())].particle_id == 0
-        ).sum() == 0, "There are hits in the track edges that are noise"
+        
 
         track_features = self._get_track_features(hits, track_index_edges, track_edges)
 
@@ -184,25 +277,4 @@ class Mu3eCosmicReader(EventReader):
             track_edges, track_features, hits
         )
 
-        return track_edges, track_features, hits
-    
-    def _process_hits(self, hits):
-        #Rename tid and layer
-        hits = hits.rename(columns={'tid': 'particle_id'})
-        hits = hits.rename(columns={'layer': 'layer_id'})
-
-        # Calculate the radius of the particle
-        hits['radius'] = np.sqrt(hits["vx"] ** 2 + hits["vy"] ** 2)
-
-        # Calculate the pT of the particle
-        hits['pt'] = np.sqrt(hits["px"] ** 2 + hits["py"] ** 2)
-
-        # Assign hit_ids
-        hits['hit_id'] = list(range(1,len(hits['x'])+1))
-
-        #Assign station_id: -1 for upstream recoil, 0 for central and +1 for downstream station
-        conditions = [(hits['z'] < -200), (hits['z'] < 200), (hits['z'] >= 200)]
-        ids = [-1, 0, 1]
-        hits['station_id'] = np.select(conditions, ids)
-
-        return hits
+        return track_edges, track_features, hits, False
