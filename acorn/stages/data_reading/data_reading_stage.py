@@ -95,8 +95,8 @@ class EventReader:
         """
 
         for dataset, dataset_name in zip(
-            [self.trainset, self.valset, self.testset],
-            ["trainset", "valset", "testset"],
+            [self.valset, self.testset, self.trainset],
+            ["valset", "testset", "trainset"],
         ):
             if dataset is not None:
                 self._build_all_csv(dataset, dataset_name)
@@ -421,13 +421,13 @@ class EventReader:
         for track_feature in set(
             self.config["feature_sets"]["track_features"]
         ).intersection(set(hits.columns)):
+        
             assert (
                 hits[track_feature].values[track_index_edges][0]
                 == hits[track_feature].values[track_index_edges][1]
             ).all(), f"Track features must be the same for each side of edge: {track_feature}"
-            track_features[track_feature] = hits[track_feature].values[
-                track_index_edges[0]
-            ]
+
+            track_features[track_feature] = hits[track_feature].values[track_index_edges[0]]
 
         if "redundant_split_edges" in self.config["feature_sets"]["track_features"]:
             track_features["redundant_split_edges"] = self._get_redundant_split_edges(

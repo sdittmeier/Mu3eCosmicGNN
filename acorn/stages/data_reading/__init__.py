@@ -25,4 +25,5 @@ __all__ = [
     "AthenaClusterReader",
     "TrackMLReader",
     "ActsReader",
+    "Mu3eCosmicReader"
 ]

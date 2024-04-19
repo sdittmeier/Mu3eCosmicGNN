@@ -2,14 +2,16 @@
 stage: data_reading
 model: Mu3eCosmicReader
 input_dir: /mnt/data1/karres/cosmics_test/cosmics_data
-input_file: /mnt/data1/karres/cosmics_test/cosmics_data/cosmic_f1.csv
-stage_dir: /mnt/data1/karres/cosmics_test/feature_store/
+input_file: /mnt/data1/karres/cosmics_test/cosmics_data/cosmic_michel_f2.csv
+stage_dir: /mnt/data1/karres/cosmics_test/feature_store_cosmic_michel/
 max_workers: 64
 
 skip_csv: False
+skip_pyg: False
+simple_graph: True
 seed: 1
 
-module_columns: [layer_id, station_id]
+module_columns: [layer_id, station_id, ladder_id, module_id]
 feature_sets:
     hit_features: [hit_id, x, y, z]
     track_features: [particle_id, pt, radius, nhits]
