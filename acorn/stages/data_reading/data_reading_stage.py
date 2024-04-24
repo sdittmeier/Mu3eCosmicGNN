@@ -86,6 +86,7 @@ class EventReader:
         #reader._test_csv_conversion()
         reader._convert_to_pyg()
         #reader._test_pyg_conversion()
+        reader._convert_to_fc_pyg()
 
         return reader
 
@@ -134,8 +135,15 @@ class EventReader:
         pass
 
     def _convert_to_pyg(self):
-        for dataset_name in ["trainset", "valset", "testset"]:
+        for dataset_name in ["valset", "testset", "trainset"]:
             self._build_all_pyg(dataset_name)
+
+    def _convert_to_fc_pyg(self):
+        for dataset_name in ["valset", "testset", "trainset"]:
+            self._build_all_fc_pyg(dataset_name)
+
+    def _build_all_fc_pyg(self, dataset_name):
+        pass
 
     def _build_single_pyg_event(self, event, output_dir=None):
         # Trick to make all workers are using separate CPUs

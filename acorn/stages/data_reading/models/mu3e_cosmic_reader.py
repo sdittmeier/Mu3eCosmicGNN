@@ -9,26 +9,16 @@ from tqdm.contrib.concurrent import process_map
 from functools import partial
 from ..data_reading_stage import EventReader
 from torch_geometric.data import Data
-from itertools import product
+from itertools import product, combinations
 
 
 
 '''
-Build truth graphs stops after ~1500 graphs
-    -> IndexError: arrays used as indices must be of integer (or boolean) type
-    -> track_index_edges probably the error
-    -> Other seeds also stop around that mark
+Event IDs weird: Some are missing but not important -> Ask Tamasi
 
-    Reason: Event 13032 and 17761 only have hits in layer 3 -> track_index_edges empty
-
-Event IDs weird: Some are missing -> Ask Tamasi
-
-Next steps:
-    -> Need additional module id for special cases like above
-        -Add in simulation or manual?
-    -> Implement nhits -> Done I think
-    -> Graph visualization: -> 'GlobalStorage' object has no attribute 'edge_index'
-                            -> Error in truth graph generation?
+Wanted to add counter of edges cut for every event processed but it doesn't work
+    -> List is not expanded -> csv is empty in the end
+    -> Maybe because of multiprocessing?
 '''
 
 def split_list(list, train_size, val_size, test_size, seed=None):
@@ -38,11 +28,12 @@ def split_list(list, train_size, val_size, test_size, seed=None):
     np.random.shuffle(list)
     length = list.shape[0]
 
-    print('In total',length,'events.')
+    print('Full dataset:',length,'events')
     print('Split into:')
     print('Trainset:', int(train_size*length),'events')
     print('Valset:', int(val_size*length),'events')
     print('Testset:', int(test_size*length),'events')
+    print('===========================================')
 
     trainset = list[:int(train_size*length)] 
     valset = list[int(train_size*length):int((train_size+val_size)*length)]
@@ -71,8 +62,12 @@ def process_hits(hits):
     #Assign nhits
     hits['nhits'] = len(hits['x'])
 
-    # Assign hit_ids
-    hits['hit_id'] = list(range(1,len(hits['x'])+1))
+    #Assign hit_ids
+    hits['hit_id'] = list(range(0,len(hits['x'])))
+
+    #Make ladder ids and module ids unique
+    hits['ladder_id'] = hits['ladder_id'] + hits['station_id']*100
+    hits['module_id'] = hits['module_id'] + hits['station_id']*1000 
 
     return hits
 
@@ -89,10 +84,10 @@ class Mu3eCosmicReader(EventReader):
 
     def _build_all_csv(self, dataset, dataset_name):
         if self.config['skip_csv'] == True:
-            print('Skipping building ', dataset_name,' CSVs')
+            print('Skipping building', dataset_name,'CSVs')
             return
 
-        print('Building ',dataset_name,' csv files started!')
+        print('Building',dataset_name,'CSV files started!')
 
         dataset_dir = os.path.join(self.config["stage_dir"], dataset_name)
         csv_dir = os.path.join(dataset_dir, 'csv')
@@ -112,7 +107,7 @@ class Mu3eCosmicReader(EventReader):
             for event in tqdm(dataset, desc=f"Building {dataset_name} CSV files"):
                 self._build_single_csv(event, output_dir=csv_dir)
 
-        print('Building ',dataset_name,' csv files completed!')
+        print('Building',dataset_name,'CSV files completed!')
 
     # Build single csv files for each track
     def _build_single_csv(self, event, output_dir=None):
@@ -135,13 +130,13 @@ class Mu3eCosmicReader(EventReader):
     # Build pyg files 
     def _build_all_pyg(self, dataset_name): #gets called by _convert_to_pyg
         if self.config['skip_pyg'] == True:
-            print('Skipping building ', dataset_name,' PYGs')
+            print('Skipping building', dataset_name,'PYGs')
             return
 
-        print('Building truth graphs started!')
+        print('Building truth graphs started! ('+dataset_name+')')
 
         dataset_dir = os.path.join(self.config["stage_dir"], dataset_name)
-        graph_dir = os.path.join(dataset_dir, 'graphs')
+        graph_dir = os.path.join(dataset_dir, 'truth_graphs')
         os.makedirs(graph_dir, exist_ok=True)
 
         csv_events = getattr(self, dataset_name)
@@ -165,15 +160,17 @@ class Mu3eCosmicReader(EventReader):
 
         print('Building truth graphs completed!')
 
-    def _build_single_pyg_event(self, event, output_dir=None):
+    def _build_single_pyg_event(self, event, output_dir=None, fc_output_dir=None):
         os.sched_setaffinity(0, range(1000))
 
         event_id = event
+        single_pyg_dir = os.path.join(output_dir, "event{:09}-graph.pyg".format(int(event_id)))
 
-        if os.path.exists(os.path.join(output_dir, "event{:09}-graph.pyg".format(int(event_id)))):
-            print(f"Graph {event_id} already exists, skipping...")
-            return
-
+        if os.path.exists(single_pyg_dir):
+            if self.config['skip_fcg'] == True:
+                print(f"Graph {event_id} already exists, skipping...")
+                return
+            
         dataset_dir = os.path.dirname(output_dir)
         event_path = os.path.join(dataset_dir, "csv/event{:09}-truth.csv".format(int(event_id)))
 
@@ -183,18 +180,18 @@ class Mu3eCosmicReader(EventReader):
         hits, track_index_edges, flag = self._sort_radius(hits, event_id)
 
         #Skip this graph if track_index_edges is empty
-        if flag== True:
+        if flag == True:
             return
         
         #Two graph building methods: simple (connect edges based on distance to vertex) and normal (with remapping)
         if self.config['simple_graph'] == True:
-            graph, positions_x_y, flag = self._build_truth_graph_simple(hits, track_index_edges)
+            graph, positions_x_y, flag = self._build_truth_graph_simple(hits, track_index_edges) #positions_x_y are for plotting
         else:
             tracks, track_features, hits, flag = self._build_true_tracks(hits, track_index_edges) 
             graph = self._build_graph(hits, tracks, track_features)
 
         self._save_pyg_data(graph, output_dir, event_id)
-        
+
     def _sort_radius(self, hits, event_id):
         # Sort by increasing distance from production
         hits = hits.assign(
@@ -206,37 +203,6 @@ class Mu3eCosmicReader(EventReader):
         )
         signal = hits[(hits.particle_id != 0)]
         signal = signal.sort_values("R").reset_index(drop=False)
-
-        '''
-        hits is a dataframe containing the entries of the raw data, the added track features, module columns
-        signal is hits with added R (distance to vertex loc), filtered out noise and sorted by R
-
-        ['particle_id']+module_columns is a list of pID and detector ids
-        signal.groupby(...)['index'].agg(lambda x: list(x)) creates DataFrame of only index, pID and module IDs
-            -> output is dataframe with column of all unique particle ids, then layer id then station id
-            ->e.g. particle 1 hits in layer 3, station 0 twice -> row: 1,3,0, [0,1]
-            ->e.g. particle 1 hits in layer 3, station 0 and station -1 ->  1,3,0,[0]
-                                                                             ,3,-1,[1]
-            ->e.g. particle 1 hits in layer 3, station 0 twice and once in layer 2 station 0
-                ->  1,3,0,[0,3]
-                    1,2,0,[1,2]
-
-        .groupby(level=0).agg(lambda x: list(x)) groups by first level <-> pID
-            ->Output is dataframe with pID column and lists of list of indices
-            ->e.g. particle 1 hits in layer 3, station 0 twice and twice in layer 2 station 0
-                -> 1 [[0,2],[1]]
-            ->Get dataframe with rows corresponding to different particles
-
-        signal_index_list is the final dataframe
-
-        signal_index_list.values gives back a list of the lists in signal_index_values
-
-        track_index_edges is list of tuples
-
-        for row in signal_index_list.values:    -> picks a row
-            for i,j in zip(row[:-1], row[1:]):  -> i:that row without last value, j: that row without first value
-                track_index_edges.extend(list(product(i,j)))
-        '''
 
         #layer_id and station_id
         module_columns = self.config["module_columns"]
@@ -251,23 +217,12 @@ class Mu3eCosmicReader(EventReader):
             .agg(lambda x: list(x))
         )
 
-        '''
-        signal_index_list is a dataframe with rows containing the particle_id and one list for each unique combination of module_ids
-        e.g. particle 58858 hits layer 3 twice (hit ids 0,2) and layer 2 (1,3) twice, all in the same station, the dataframe will be
-        58858 [[0,2],[1,3]]
-        '''
-
         track_index_edges = []
         for row in signal_index_list.values:
             for i, j in zip(row[:-1], row[1:]):
                 track_index_edges.extend(list(product(i, j)))
 
         track_index_edges = np.array(track_index_edges).T
-
-        '''
-        track_index_edges is a list of all possible combinations of two values from signal_index_list
-        e.g. signal_index_list = [[0,2],[1,3]] -> track_index_edges = [(0,1),(0,3),(2,1),(2,3)]
-        '''
 
         #Check if track_index_edges is empty -> Skip this graph if empty
         if track_index_edges.size == 0:
@@ -313,3 +268,110 @@ class Mu3eCosmicReader(EventReader):
         )
         
         return track_edges, track_features, hits, False
+    
+    def _build_all_fc_pyg(self, dataset_name):
+        if self.config['skip_fcg'] == True:
+            print('Skipping building ', dataset_name,' fully connected PYGs')
+            return
+
+        print('Building fully connected graphs started! ('+dataset_name+')')
+
+        dataset_dir = os.path.join(self.config["stage_dir"], dataset_name)
+        fc_graph_dir = os.path.join(dataset_dir, 'fc_graphs_ladder_cut')
+        os.makedirs(fc_graph_dir, exist_ok=True)
+
+        csv_events = getattr(self, dataset_name)
+
+        assert len(csv_events) > 0, "No CSV files found!"
+
+        max_workers = (
+            self.config["max_workers"] if "max_workers" in self.config else None
+        )
+        if max_workers != 1:
+            process_map(
+                partial(self._build_single_fc_pyg_event, output_dir=fc_graph_dir),
+                csv_events,
+                max_workers=max_workers,
+                chunksize=1,
+                desc=f"Building {dataset_name} fully connected graphs",
+            )
+        else:
+            for event in tqdm(csv_events, desc=f"Building {dataset_name} fully connected graphs"):
+                self._build_single_fc_pyg_event(event, output_dir=fc_graph_dir)
+
+        print('Building fully connected graphs completed!')
+        
+    def _build_single_fc_pyg_event(self, event, output_dir=None):
+        os.sched_setaffinity(0, range(1000))
+
+        event_id = event
+        single_fc_pyg_dir = os.path.join(output_dir, "event{:09}-fc_graph.pyg".format(int(event_id)))
+
+        if os.path.exists(single_fc_pyg_dir):
+            print(f"FC Graph {event_id} already exists, skipping...")
+            return
+
+        dataset_dir = os.path.dirname(output_dir)
+        event_path = os.path.join(dataset_dir, "csv/event{:09}-truth.csv".format(int(event_id)))
+
+        hits = pd.read_csv(event_path)
+        hits = process_hits(hits)
+
+        fc_graph, positions_x_y = self._build_fully_connected_graph(hits)
+
+        self._save_fc_pyg_data(fc_graph, output_dir, event_id)
+
+    def _build_fully_connected_graph(self, hits):
+        #All unique combinations of hit_ids -> Fully connected graph undirected
+        fc_edges = np.array(list(combinations(hits['hit_id'],2)))
+        fc_edges = self._fc_cuts(fc_edges, hits)
+
+        #Graph building
+        feature_matrix = torch.from_numpy(hits[self.config["feature_sets"]['hit_features']].values)
+        edge_index = torch.from_numpy(fc_edges.T)
+        graph_features = torch.from_numpy(hits[self.config["feature_sets"]['track_features']].values)
+
+        fc_graph=Data()
+        fc_graph.x = feature_matrix
+        fc_graph.edge_index = edge_index
+        fc_graph.y = graph_features
+
+        positions_x_y = hits[['x', 'y']].T.to_dict()
+
+        positions_x_y = {node_num: np.array([value['x'], value['y']]) for node_num, value in positions_x_y.items()}
+
+        return fc_graph, positions_x_y
+    
+    def _fc_cuts(self, fc_edges, hits):
+        # Ladder cut
+        ladder_id_dict = hits.set_index('hit_id')['ladder_id'].to_dict()
+
+        new_fc_edges = []
+
+        for edge in fc_edges:
+            ladder_id1 = ladder_id_dict.get(edge[0])
+            ladder_id2 = ladder_id_dict.get(edge[1])
+
+            if ladder_id1 != ladder_id2:
+                new_fc_edges.append(edge)
+
+        fc_edges = np.array(new_fc_edges)
+        '''
+        #Recurl-recurl cut
+        station_id_dict = hits.set_index('hit_id')['station_id'].to_dict()
+
+        new_fc_edges = []
+
+        for edge in fc_edges:
+            station_id1 = station_id_dict.get(edge[0])
+            station_id2 = station_id_dict.get(edge[1])
+
+            if not (station_id1 == 1 and station_id2 == 2):
+                new_fc_edges.append(edge)
+
+        fc_edges = np.array(new_fc_edges)
+        '''
+        return fc_edges
+    
+    def _save_fc_pyg_data(self, graph, output_dir, event_id):
+        torch.save(graph, os.path.join(output_dir, "event{:09}-fc_graph.pyg".format(int(event_id))))

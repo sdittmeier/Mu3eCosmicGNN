@@ -2,12 +2,14 @@
 stage: data_reading
 model: Mu3eCosmicReader
 input_dir: /mnt/data1/karres/cosmics_test/cosmics_data
-input_file: /mnt/data1/karres/cosmics_test/cosmics_data/cosmic_michel_f2.csv
-stage_dir: /mnt/data1/karres/cosmics_test/feature_store_cosmic_michel/
-max_workers: 64
+input_file: /mnt/data1/karres/cosmics_test/cosmics_data/cosmic_f1.csv
+stage_dir: /mnt/data1/karres/cosmics_test/feature_store_cosmic/
+max_workers: 32
 
-skip_csv: False
-skip_pyg: False
+skip_csv: True
+skip_pyg: True
+skip_fcg: False #Build fully connected graphs as well
+
 simple_graph: True
 seed: 1
 
