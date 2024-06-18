@@ -7,6 +7,7 @@ from sklearn.metrics import auc, roc_curve
 import torch
 from tqdm import tqdm
 import yaml
+import pandas as pd
 
 from acorn.stages.track_building.utils import rearrange_by_distance
 from acorn.utils.plotting_utils import (
@@ -18,6 +19,138 @@ from acorn.utils.plotting_utils import (
 )
 from acorn.utils.version_utils import get_pyg_data_keys
 
+def fc_efficiency_purity(lightning_module, plot_config, config):
+    '''
+    Plot a histogram of the efficiency and purity of the fully connected graph
+    '''
+
+    efficiency, purity = [], []
+
+    for dataset in ['trainset', 'valset', 'testset']:
+        dir = os.path.join(config["stage_dir"], dataset)
+
+        for event in tqdm(os.listdir(dir), desc=dataset):
+            graph = torch.load(os.path.join(dir, event))
+
+            single_efficiency = torch.sum(graph.y) / len(graph.truth_map[graph.truth_map != -1]) # eff = #built segments / #segments
+            single_purity = torch.sum(graph.y) / len(graph.y) # pur = #built segments / #edges
+
+            efficiency.append(single_efficiency)
+            purity.append(single_purity)        
+    
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 8))
+    ax1.hist(efficiency, bins=50, alpha=0.5, label='Mean eff: {:.2f}'.format(np.mean(efficiency)))
+    ax1.set_xlabel('Efficiency')
+    ax1.set_ylabel('Frequency')
+    ax1.set_xlim(0, 1.1)
+    ax1.set_yscale('log')
+    ax1.legend()
+
+    ax2.hist(purity, bins=50, alpha=0.5, label='Mean pur: {:.2f}'.format(np.mean(purity)))
+    ax2.set_xlabel('Purity')
+    ax2.set_ylabel('Frequency')
+    ax2.set_xlim(0, 1.1)
+    ax2.set_yscale('log')
+    ax2.legend()
+
+    fig.suptitle(plot_config['title'] + ' (' + str(len(efficiency)) + ' events in total)')
+    plt.tight_layout()
+
+    print('Finished plot, saving now...')
+
+    filename = plot_config['filename']
+
+    fig.savefig(os.path.join(config["stage_dir"], filename), dpi=400)
+    print('Plot saved to', os.path.join(config["stage_dir"], filename))
+
+    print('Saving plot to CSV...')
+    df = pd.DataFrame({'efficiency': efficiency, 'purity': purity})
+    df.to_csv(os.path.join(config["stage_dir"], filename.replace('.png', '.csv')), index=False)
+
+def fc_edge_distributions(lightning_module, plot_config, config):
+    '''
+    Plot histograms for distance between nodes, angle between nodes
+    '''
+
+    distances = []
+    angles = []
+
+    for dataset in ['trainset', 'valset', 'testset']:
+        dir = os.path.join(config["stage_dir"], dataset)
+
+        for event in tqdm(os.listdir(dir), desc=dataset):
+            graph = torch.load(os.path.join(dir, event))
+
+            for edge in graph.edge_index.T:
+                node1 = graph.node_pos[edge[0]]
+                node2 = graph.node_pos[edge[1]]
+
+                distances.append(np.linalg.norm(node1 - node2))
+                angles.append(np.arccos(np.dot(node1, node2) / (np.linalg.norm(node1) * np.linalg.norm(node2))))
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 8))
+    ax1.hist(distances, bins=50, alpha=0.5, label='Mean dist: {:.2f}'.format(np.mean(distances)))
+    ax1.set_xlabel('Distance between nodes [mm]')
+    ax1.set_ylabel('Frequency')
+    ax1.set_yscale('log')
+    ax1.legend()
+
+    ax2.hist(angles, bins=50, alpha=0.5, label='Mean angle: {:.2f}'.format(np.mean(angles)))
+    ax2.set_xlabel('Angle between nodes [rad]')
+    ax2.set_ylabel('Frequency')
+    ax2.set_yscale('log')
+    ax2.legend()
+
+    fig.suptitle(plot_config['title'] + ' (' + str(len(distances)) + ' edges in total)')
+    plt.tight_layout()
+
+    print('Finished plot, saving now...')
+    filename = plot_config['filename']
+
+    fig.savefig(os.path.join(config["stage_dir"], filename), dpi=400)
+    print('Plot saved to', os.path.join(config["stage_dir"], filename))
+
+    print('Saving plot to CSV...')
+    df = pd.DataFrame({'distances': distances, 'angles': angles})
+    df.to_csv(os.path.join(config["stage_dir"], filename.replace('.png', '.csv')), index=False)
+
+def multi_graph_num_edges(lightning_module, plot_config, config):
+    '''
+    Plot the number of edges in each graph for multiple datasets
+    '''
+    num_datasets = len(plot_config["datasets"])
+
+    num_edges = np.empty((num_datasets, 0))
+    for i, superdataset in enumerate(config["datasets"]): 
+        for dataset in ['trainset', 'valset', 'testset']:
+            head = os.path.split(config["stage_dir"])[0]
+
+            dir = os.path.join(head, superdataset)
+            dir = os.path.join(dir, dataset)
+
+            for event in tqdm(os.listdir(dir), desc=dataset):
+                graph = torch.load(os.path.join(dir, event))
+
+                num_edges[i].append(graph.edge_index.shape[1])
+
+    fig, ax = plt.subplots(figsize=(12, 8))
+
+    for i, label in enumerate(plot_config["labels"]):
+        ax.hist(num_edges[i], bins=50, alpha=0.5, label=label + ' Mean: {:.2f}'.format(np.mean(num_edges[i])))
+
+    ax.set_xlabel('Number of edges')
+    ax.set_ylabel('Frequency')
+    ax.set_yscale('log')
+    ax.legend()
+
+    fig.suptitle(plot_config['title'])
+    plt.tight_layout()
+
+    print('Finished plot, saving now...')
+    filename = plot_config['filename']
+
+    fig.savefig(os.path.join(config["stage_dir"], filename), dpi=400)
+    print('Plot saved to', os.path.join(config["stage_dir"], filename))
 
 def graph_construction_efficiency(lightning_module, plot_config, config):
     """

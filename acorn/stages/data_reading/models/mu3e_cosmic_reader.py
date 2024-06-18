@@ -14,11 +14,29 @@ from itertools import product, combinations
 
 
 '''
-Event IDs weird: Some are missing but not important -> Ask Tamasi
+Done:
+    Split into train/val/test
+    Generate single CSVs from whole dataset
+    Generate truth graphs based on distance to vertex location
+        -> Works good for muons but Michels are dubious
+    Generate fully connected graphs
+        -> Added ladder and recurl-recurl cuts
 
-Wanted to add counter of edges cut for every event processed but it doesn't work
-    -> List is not expanded -> csv is empty in the end
-    -> Maybe because of multiprocessing?
+    Directory structure: feature_store -> test/val/train -> csv/truth_graphs/fc_graphs (no cuts)/fc_graphs (different cuts)
+
+Problems/ToDos:
+    Event IDs weird: Some are missing but not important 
+        -> Ask Tamasi
+
+    Find other cuts to reduce fully connected graph size
+    Maybe move whole fully connected graph building to a separate stage
+    More comments
+    Clean up code
+
+Next/Questions:
+    Go through edge_classifier_stage.py and interaction_gnn.py
+    Can I run acorn train gnn_train.yaml without any changes?
+    What is efficiency again?
 '''
 
 def split_list(list, train_size, val_size, test_size, seed=None):
@@ -50,9 +68,9 @@ def process_hits(hits):
     hits = hits.rename(columns={'tid': 'particle_id'})
     hits = hits.rename(columns={'station': 'station_id'})
     hits = hits.rename(columns={'layer': 'layer_id'})
-    hits = hits.rename(columns={'ladder': 'ladder_id'})
     hits = hits.rename(columns={'module': 'module_id'})
-
+    hits = hits.rename(columns={'ladder': 'ladder_id'})
+    
     # Calculate the pT of the particle
     hits['pt'] = np.sqrt(hits["px"] ** 2 + hits["py"] ** 2)
 
@@ -66,8 +84,8 @@ def process_hits(hits):
     hits['hit_id'] = list(range(0,len(hits['x'])))
 
     #Make ladder ids and module ids unique
-    hits['ladder_id'] = hits['ladder_id'] + hits['station_id']*100
-    hits['module_id'] = hits['module_id'] + hits['station_id']*1000 
+    hits['ladder_id'] = hits['ladder_id'] + hits['station_id']*100 + hits['layer_id']*1000
+    hits['module_id'] = hits['module_id'] + hits['station_id']*100 + hits['layer_id']*1000
 
     return hits
 
@@ -113,7 +131,8 @@ class Mu3eCosmicReader(EventReader):
     def _build_single_csv(self, event, output_dir=None):
         # Filter data with same eID
         truth = self.raw_events[self.raw_events['event'] == event]
-    
+        truth = process_hits(truth)
+
         # Check if file already exists
         if os.path.exists(
             os.path.join(output_dir, "event{:09}-truth.csv".format(int(event)))
@@ -175,8 +194,7 @@ class Mu3eCosmicReader(EventReader):
         event_path = os.path.join(dataset_dir, "csv/event{:09}-truth.csv".format(int(event_id)))
 
         hits = pd.read_csv(event_path)
-        hits = process_hits(hits)
-        
+
         hits, track_index_edges, flag = self._sort_radius(hits, event_id)
 
         #Skip this graph if track_index_edges is empty
@@ -201,10 +219,9 @@ class Mu3eCosmicReader(EventReader):
                 + (hits.z - hits.vz) ** 2
             )
         )
-        signal = hits[(hits.particle_id != 0)]
-        signal = signal.sort_values("R").reset_index(drop=False)
+    
+        signal = hits.sort_values("R").reset_index(drop=False)
 
-        #layer_id and station_id
         module_columns = self.config["module_columns"]
 
         signal_index_list = (
@@ -237,7 +254,7 @@ class Mu3eCosmicReader(EventReader):
         This function takes in the edges of an event and outputs a pyg object containing the truth graph
         The truth graph is built by connecting succeeding hits after sorting by distance to the vertex location
         '''
-
+        
         #Graph building
         feature_matrix = torch.from_numpy(hits[self.config["feature_sets"]['hit_features']].values)
         edge_index = torch.from_numpy(track_index_edges)
@@ -248,11 +265,13 @@ class Mu3eCosmicReader(EventReader):
         graph.edge_index = edge_index
         graph.y = graph_features
 
+        positions_x_y = None
+        '''
         #Get x,y positions for graph drawing later
         positions_x_y = hits[['x', 'y']].T.to_dict()
 
         positions_x_y = {node_num: np.array([value['x'], value['y']]) for node_num, value in positions_x_y.items()}
-
+        '''
         return graph, positions_x_y, False
 
     def _build_true_tracks(self, hits, track_index_edges):
@@ -277,7 +296,7 @@ class Mu3eCosmicReader(EventReader):
         print('Building fully connected graphs started! ('+dataset_name+')')
 
         dataset_dir = os.path.join(self.config["stage_dir"], dataset_name)
-        fc_graph_dir = os.path.join(dataset_dir, 'fc_graphs_ladder_cut')
+        fc_graph_dir = os.path.join(dataset_dir, self.config['fc_name'])
         os.makedirs(fc_graph_dir, exist_ok=True)
 
         csv_events = getattr(self, dataset_name)
@@ -315,9 +334,8 @@ class Mu3eCosmicReader(EventReader):
         event_path = os.path.join(dataset_dir, "csv/event{:09}-truth.csv".format(int(event_id)))
 
         hits = pd.read_csv(event_path)
-        hits = process_hits(hits)
 
-        fc_graph, positions_x_y = self._build_fully_connected_graph(hits)
+        fc_graph = self._build_fully_connected_graph(hits)
 
         self._save_fc_pyg_data(fc_graph, output_dir, event_id)
 
@@ -334,16 +352,25 @@ class Mu3eCosmicReader(EventReader):
         fc_graph=Data()
         fc_graph.x = feature_matrix
         fc_graph.edge_index = edge_index
-        fc_graph.y = graph_features
-
+        #fc_graph.y = graph_features
+        '''
         positions_x_y = hits[['x', 'y']].T.to_dict()
 
         positions_x_y = {node_num: np.array([value['x'], value['y']]) for node_num, value in positions_x_y.items()}
-
-        return fc_graph, positions_x_y
+        '''
+        return fc_graph#, positions_x_y
     
     def _fc_cuts(self, fc_edges, hits):
-        # Ladder cut
+        if not self.config['cuts']:
+            return fc_edges
+        if 'ladder' in self.config['cuts']:
+            fc_edges = self._ladder_cut(fc_edges, hits)
+        if 'recurl_recurl' in self.config['cuts']:
+            fc_edges = self._recurl_recurl_cut(fc_edges, hits)
+
+        return fc_edges
+    
+    def _ladder_cut(self, fc_edges, hits):
         ladder_id_dict = hits.set_index('hit_id')['ladder_id'].to_dict()
 
         new_fc_edges = []
@@ -356,8 +383,9 @@ class Mu3eCosmicReader(EventReader):
                 new_fc_edges.append(edge)
 
         fc_edges = np.array(new_fc_edges)
-        '''
-        #Recurl-recurl cut
+        return fc_edges
+    
+    def _recurl_recurl_cut(self, fc_edges, hits):
         station_id_dict = hits.set_index('hit_id')['station_id'].to_dict()
 
         new_fc_edges = []
@@ -370,7 +398,6 @@ class Mu3eCosmicReader(EventReader):
                 new_fc_edges.append(edge)
 
         fc_edges = np.array(new_fc_edges)
-        '''
         return fc_edges
     
     def _save_fc_pyg_data(self, graph, output_dir, event_id):

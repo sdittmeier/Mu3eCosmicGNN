@@ -18,6 +18,7 @@ from .models.athena_cluster_reader import AthenaClusterReader
 from .models.trackml_reader import TrackMLReader
 from .models.acts_reader import ActsReader
 from .models.mu3e_cosmic_reader import Mu3eCosmicReader
+from .models.mu3e_cosmic_reader_v2 import Mu3eCosmicReaderV2
 
 __all__ = [
     "AthenaReader",
@@ -25,5 +26,6 @@ __all__ = [
     "AthenaClusterReader",
     "TrackMLReader",
     "ActsReader",
-    "Mu3eCosmicReader"
+    "Mu3eCosmicReader",
+    "Mu3eCosmicReaderV2"
 ]

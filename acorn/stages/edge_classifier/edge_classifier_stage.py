@@ -591,6 +591,7 @@ class GraphDataset(Dataset):
         if not self.preprocess:
             return event
         event = self.preprocess_event(event)
+        
         # do pyg transformation if a torch_geometric.transforms instance is given
         if self.transform is not None:
             event = self.transform(event)

@@ -1,0 +1,19 @@
+# CommonFramework configuration
+stage: data_reading
+model: Mu3eCosmicReaderV2
+input_dir: /mnt/data1/karres/cosmics_test/cosmics_data
+input_file: /mnt/data1/karres/cosmics_test/cosmics_data/cosmic_f1.csv
+stage_dir: /mnt/data1/karres/cosmics_test/feature_store_cosmic/
+project: CosmicGNN # Used in logging
+
+max_workers: 128
+
+truth_features: [hit_id, particle_id, x, y, z, px, py, pz, layer_id, ladder_id, module_id, station_id]
+particles_features: [particle_id, particle_type, vx, vy, vz, px, py, pz, q, nhits, radius, pt]
+
+seed: 1
+
+module_columns: [station_id, layer_id, ladder_id, module_id]
+feature_sets:
+    hit_features: [hit_id, x, y, z]
+    track_features: [particle_id, pt, radius, nhits, particle_type, q]

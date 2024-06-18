@@ -9,15 +9,17 @@ project: CosmicGNN # Used in logging
 data_split: [10596, 1324, 1324] # Number of [training, validation, testing] examples
 
 # Evaluation parameters
-target_tracks: 
-  pt: [1., .inf]
-  nhits: [3., .inf]
+target_tracks:
+
 
 # Plotting parameters
 plots:
-  fc_efficiency_purity: 
-    title: "Fully Connected Efficiency and Purity (Cosmics with Michel, recurl cut only))"
-    filename: "fc_efficiency_purity.png"
-  fc_edge_distributions:
-    title: "Fully Connected Distances and Angles Between Nodes (Cosmics with Michel, recurl cut only)"
-    filename: "fc_edge_distributions.png"
+  multi_graph_num_edges: 
+    title: "Number of Edges per Graph (with and without cuts)"
+    filename: "fc_num_edges.png"
+    datasets: ['fully_connected_cosmic_michel_no_cuts', 
+              'fully_connected_cosmic_michel_recurl_only', 
+              'fully_connected_cosmic_michel_ladder_only', 
+              'fully_connected_cosmic_michel']
+    labels: ['No Cuts', 'Recurl Cut Only', 'Ladder Cut Only', 'Recurl and Ladder Cut'] 
+           

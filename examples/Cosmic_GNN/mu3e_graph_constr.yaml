@@ -1,0 +1,11 @@
+# CommonFramework configuration
+stage: graph_construction
+model: FullyConnected
+input_dir: /mnt/data1/karres/cosmics_test/feature_store_cosmic/ # Should contain the files used in training and inference
+stage_dir: /mnt/data1/karres/cosmics_test/fully_connected_cosmic/ # A directory to be created that will store logs, artifacts, and output data
+project: CosmicGNN # Used in logging
+
+# Dataset parameters
+data_split: [10596, 1324, 1324] # Number of [training, validation, testing] examples
+
+max_workers: 128

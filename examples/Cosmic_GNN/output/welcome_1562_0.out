@@ -1,0 +1,7 @@
+_CONDOR_AssignedGPUS: GPU-59dabc4a
+CUDA_VISIBLE_DEVICES: 0
+5 arguments
+activate CONDA environment: cosmicgnn
+change directory: /home/mue/karres/git/Mu3eCosmicGNN/examples/Example_3
+Execute command:  acorn infer metric_learning_train.yaml
+No checkpoint found

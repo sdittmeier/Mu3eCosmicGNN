@@ -86,7 +86,6 @@ class EventReader:
         #reader._test_csv_conversion()
         reader._convert_to_pyg()
         #reader._test_pyg_conversion()
-        reader._convert_to_fc_pyg()
 
         return reader
 
@@ -137,13 +136,6 @@ class EventReader:
     def _convert_to_pyg(self):
         for dataset_name in ["valset", "testset", "trainset"]:
             self._build_all_pyg(dataset_name)
-
-    def _convert_to_fc_pyg(self):
-        for dataset_name in ["valset", "testset", "trainset"]:
-            self._build_all_fc_pyg(dataset_name)
-
-    def _build_all_fc_pyg(self, dataset_name):
-        pass
 
     def _build_single_pyg_event(self, event, output_dir=None):
         # Trick to make all workers are using separate CPUs
@@ -332,7 +324,7 @@ class EventReader:
                 r, hits.z
             )  # TODO check if r is defined (same for clusters, below)
             hits = hits.assign(eta=eta)
-        '''if "cluster_r_1" in self.config["feature_sets"]["hit_features"]:
+            '''if "cluster_r_1" in self.config["feature_sets"]["hit_features"]:
             cluster_r_1 = np.sqrt(hits.cluster_x_1**2 + hits.cluster_y_1**2)
             cluster_r_1.loc[pixel_regions_idx] = r.loc[pixel_regions_idx]
             hits = hits.assign(cluster_r_1=cluster_r_1)
@@ -415,7 +407,7 @@ class EventReader:
         ).sum() == 0, "There are hits in the track edges that are noise"
 
         track_features = self._get_track_features(hits, track_index_edges, track_edges)
-
+        
         # Remap
         track_edges, track_features, hits = self.remap_edges(
             track_edges, track_features, hits

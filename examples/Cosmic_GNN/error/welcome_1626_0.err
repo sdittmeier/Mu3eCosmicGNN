@@ -1,0 +1,271 @@
+/var/lib/condor/execute/dir_1738226/condor_ml.sh: line 44: 4: No such file or directory
+WARNING:root:FRNN is not available, install it at https://github.com/murnanedaniel/FRNN. Using PyG radius instead.
+wandb: Currently logged in as: karres (heidelberg_atlas_pi). Use `wandb login --relogin` to force relogin
+wandb: wandb version 0.17.1 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.16.4
+wandb: Run data is saved locally in /mnt/data1/karres/cosmics_test/gnn/wandb/run-20240617_094058-ggmopqgn
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run sunny-pond-2
+wandb: ⭐️ View project at https://wandb.ai/heidelberg_atlas_pi/CosmicGNN
+wandb: 🚀 View run at https://wandb.ai/heidelberg_atlas_pi/CosmicGNN/runs/ggmopqgn
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+IPU available: False, using: 0 IPUs
+HPU available: False, using: 0 HPUs
+You are using a CUDA device ('NVIDIA RTX A6000') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+Initializing distributed: GLOBAL_RANK: 0, MEMBER: 1/1
+----------------------------------------------------------------------------------------------------
+distributed_backend=nccl
+All distributed processes registered. Starting with 1 processes
+----------------------------------------------------------------------------------------------------
+
+/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/utils/loading_utils.py:80: UserWarning: OPTIONAL feature [particle_id] not found in data
+  warnings.warn(f"OPTIONAL feature [{feature}] not found in data")
+/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/utils/loading_utils.py:80: UserWarning: OPTIONAL feature [nhits] not found in data
+  warnings.warn(f"OPTIONAL feature [{feature}] not found in data")
+/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/utils/loading_utils.py:80: UserWarning: OPTIONAL feature [primary] not found in data
+  warnings.warn(f"OPTIONAL feature [{feature}] not found in data")
+/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/utils/loading_utils.py:80: UserWarning: OPTIONAL feature [pdgId] not found in data
+  warnings.warn(f"OPTIONAL feature [{feature}] not found in data")
+/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/utils/loading_utils.py:80: UserWarning: OPTIONAL feature [ghost] not found in data
+  warnings.warn(f"OPTIONAL feature [{feature}] not found in data")
+/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/utils/loading_utils.py:80: UserWarning: OPTIONAL feature [shared] not found in data
+  warnings.warn(f"OPTIONAL feature [{feature}] not found in data")
+/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/utils/loading_utils.py:80: UserWarning: OPTIONAL feature [module_id] not found in data
+  warnings.warn(f"OPTIONAL feature [{feature}] not found in data")
+/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/utils/loading_utils.py:80: UserWarning: OPTIONAL feature [region] not found in data
+  warnings.warn(f"OPTIONAL feature [{feature}] not found in data")
+/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/utils/loading_utils.py:80: UserWarning: OPTIONAL feature [hit_id] not found in data
+  warnings.warn(f"OPTIONAL feature [{feature}] not found in data")
+/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/utils/loading_utils.py:80: UserWarning: OPTIONAL feature [pt] not found in data
+  warnings.warn(f"OPTIONAL feature [{feature}] not found in data")
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+
+  | Name                   | Type             | Params
+------------------------------------------------------------
+0 | aggregation            | MultiAggregation | 0     
+1 | node_encoder           | Sequential       | 17.0 K
+2 | edge_encoder           | Sequential       | 49.4 K
+3 | edge_network           | Sequential       | 65.8 K
+4 | node_network           | Sequential       | 164 K 
+5 | output_edge_classifier | Sequential       | 65.9 K
+------------------------------------------------------------
+362 K     Trainable params
+0         Non-trainable params
+362 K     Total params
+1.449     Total estimated model params size (MB)
+/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:441: The 'val_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=255` in the `DataLoader` to improve performance.
+/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:441: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=255` in the `DataLoader` to improve performance.
+Traceback (most recent call last):
+  File "/local/anaconda3/envs/cosmicgnn/bin/acorn", line 33, in <module>
+    sys.exit(load_entry_point('acorn', 'console_scripts', 'acorn')())
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/click/core.py", line 1157, in __call__
+    return self.main(*args, **kwargs)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/click/core.py", line 1078, in main
+    rv = self.invoke(ctx)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/click/core.py", line 1688, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/click/core.py", line 1434, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/click/core.py", line 783, in invoke
+    return __callback(*args, **kwargs)
+  File "/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/core/entrypoint_stage.py", line 21, in train
+    train_stage.train(config_file, checkpoint, sweep, checkpoint_resume_dir)
+  File "/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/core/train_stage.py", line 86, in train
+    lightning_train(
+  File "/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/core/train_stage.py", line 108, in lightning_train
+    trainer.fit(stage_module)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 544, in fit
+    call._call_and_handle_interrupt(
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/trainer/call.py", line 43, in _call_and_handle_interrupt
+    return trainer.strategy.launcher.launch(trainer_fn, *args, trainer=trainer, **kwargs)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/strategies/launchers/subprocess_script.py", line 105, in launch
+    return function(*args, **kwargs)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 580, in _fit_impl
+    self._run(model, ckpt_path=ckpt_path)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 987, in _run
+    results = self._run_stage()
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1033, in _run_stage
+    self.fit_loop.run()
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/loops/fit_loop.py", line 205, in run
+    self.advance()
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/loops/fit_loop.py", line 363, in advance
+    self.epoch_loop.run(self._data_fetcher)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/loops/training_epoch_loop.py", line 140, in run
+    self.advance(data_fetcher)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/loops/training_epoch_loop.py", line 212, in advance
+    batch, _, __ = next(data_fetcher)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/loops/fetchers.py", line 133, in __next__
+    batch = super().__next__()
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/loops/fetchers.py", line 60, in __next__
+    batch = next(self.iterator)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/utilities/combined_loader.py", line 341, in __next__
+    out = next(self._iterator)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/utilities/combined_loader.py", line 78, in __next__
+    out[i] = next(self.iterators[i])
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 630, in __next__
+    data = self._next_data()
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 1345, in _next_data
+    return self._process_data(data)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 1371, in _process_data
+    data.reraise()
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/torch/_utils.py", line 694, in reraise
+    raise exception
+IndexError: Caught IndexError in DataLoader worker process 0.
+Original Traceback (most recent call last):
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/torch/utils/data/_utils/worker.py", line 308, in _worker_loop
+    data = fetcher.fetch(index)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/torch/utils/data/_utils/fetch.py", line 51, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/torch/utils/data/_utils/fetch.py", line 51, in <listcomp>
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/torch_geometric/data/dataset.py", line 289, in __getitem__
+    data = self.get(self.indices()[idx])
+  File "/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/stages/edge_classifier/edge_classifier_stage.py", line 593, in get
+    event = self.preprocess_event(event)
+  File "/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/stages/edge_classifier/edge_classifier_stage.py", line 606, in preprocess_event
+    event = self.construct_weighting(event)
+  File "/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/stages/edge_classifier/edge_classifier_stage.py", line 648, in construct_weighting
+    event.weights = handle_weighting(event, self.hparams["weighting"])
+  File "/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/utils/loading_utils.py", line 126, in handle_weighting
+    weights[get_weight_mask(event, weight_spec["conditions"])] = weight_val
+IndexError: too many indices for tensor of dimension 1
+
+Traceback (most recent call last):
+  File "/local/anaconda3/envs/cosmicgnn/bin/acorn", line 33, in <module>
+    sys.exit(load_entry_point('acorn', 'console_scripts', 'acorn')())
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/click/core.py", line 1157, in __call__
+    return self.main(*args, **kwargs)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/click/core.py", line 1078, in main
+    rv = self.invoke(ctx)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/click/core.py", line 1688, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/click/core.py", line 1434, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/click/core.py", line 783, in invoke
+    return __callback(*args, **kwargs)
+  File "/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/core/entrypoint_stage.py", line 21, in train
+    train_stage.train(config_file, checkpoint, sweep, checkpoint_resume_dir)
+  File "/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/core/train_stage.py", line 86, in train
+    lightning_train(
+  File "/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/core/train_stage.py", line 108, in lightning_train
+    trainer.fit(stage_module)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 544, in fit
+    call._call_and_handle_interrupt(
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/trainer/call.py", line 43, in _call_and_handle_interrupt
+    return trainer.strategy.launcher.launch(trainer_fn, *args, trainer=trainer, **kwargs)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/strategies/launchers/subprocess_script.py", line 105, in launch
+    return function(*args, **kwargs)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 580, in _fit_impl
+    self._run(model, ckpt_path=ckpt_path)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 987, in _run
+    results = self._run_stage()
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1033, in _run_stage
+    self.fit_loop.run()
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/loops/fit_loop.py", line 205, in run
+    self.advance()
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/loops/fit_loop.py", line 363, in advance
+    self.epoch_loop.run(self._data_fetcher)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/loops/training_epoch_loop.py", line 140, in run
+    self.advance(data_fetcher)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/loops/training_epoch_loop.py", line 212, in advance
+    batch, _, __ = next(data_fetcher)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/loops/fetchers.py", line 133, in __next__
+    batch = super().__next__()
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/loops/fetchers.py", line 60, in __next__
+    batch = next(self.iterator)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/utilities/combined_loader.py", line 341, in __next__
+    out = next(self._iterator)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/pytorch_lightning/utilities/combined_loader.py", line 78, in __next__
+    out[i] = next(self.iterators[i])
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 630, in __next__
+    data = self._next_data()
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 1345, in _next_data
+    return self._process_data(data)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 1371, in _process_data
+    data.reraise()
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/torch/_utils.py", line 694, in reraise
+    raise exception
+IndexError: Caught IndexError in DataLoader worker process 0.
+Original Traceback (most recent call last):
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/torch/utils/data/_utils/worker.py", line 308, in _worker_loop
+    data = fetcher.fetch(index)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/torch/utils/data/_utils/fetch.py", line 51, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/torch/utils/data/_utils/fetch.py", line 51, in <listcomp>
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/torch_geometric/data/dataset.py", line 289, in __getitem__
+    data = self.get(self.indices()[idx])
+  File "/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/stages/edge_classifier/edge_classifier_stage.py", line 593, in get
+    event = self.preprocess_event(event)
+  File "/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/stages/edge_classifier/edge_classifier_stage.py", line 606, in preprocess_event
+    event = self.construct_weighting(event)
+  File "/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/stages/edge_classifier/edge_classifier_stage.py", line 648, in construct_weighting
+    event.weights = handle_weighting(event, self.hparams["weighting"])
+  File "/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/utils/loading_utils.py", line 126, in handle_weighting
+    weights[get_weight_mask(event, weight_spec["conditions"])] = weight_val
+IndexError: too many indices for tensor of dimension 1
+
+wandb: - 0.028 MB of 0.028 MB uploadedwandb: WARNING No program path found, not creating job artifact. See https://docs.wandb.ai/guides/launch/create-job
+wandb: \ 0.028 MB of 0.028 MB uploadedwandb: | 0.028 MB of 0.052 MB uploadedwandb: 🚀 View run sunny-pond-2 at: https://wandb.ai/heidelberg_atlas_pi/CosmicGNN/runs/ggmopqgn
+wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: /mnt/data1/karres/cosmics_test/gnn/wandb/run-20240617_094058-ggmopqgn/logs
+Exception in thread NetStatThr:
+Traceback (most recent call last):
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/threading.py", line 1016, in _bootstrap_inner
+Exception in thread IntMsgThr:
+Traceback (most recent call last):
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/threading.py", line 1016, in _bootstrap_inner
+    self.run()
+    self.run()
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/threading.py", line 953, in run
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/threading.py", line 953, in run
+    self._target(*self._args, **self._kwargs)
+    self._target(*self._args, **self._kwargs)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 268, in check_network_status
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 300, in check_internal_messages
+    self._loop_check_status(
+    self._loop_check_status(
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 224, in _loop_check_status
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/wandb/sdk/wandb_run.py", line 224, in _loop_check_status
+    local_handle = request()
+    local_handle = request()
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/wandb/sdk/interface/interface.py", line 795, in deliver_network_status
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/wandb/sdk/interface/interface.py", line 803, in deliver_internal_messages
+    return self._deliver_network_status(status)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/wandb/sdk/interface/interface_shared.py", line 500, in _deliver_network_status
+    return self._deliver_internal_messages(internal_message)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/wandb/sdk/interface/interface_shared.py", line 506, in _deliver_internal_messages
+    return self._deliver_record(record)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/wandb/sdk/interface/interface_shared.py", line 449, in _deliver_record
+    return self._deliver_record(record)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/wandb/sdk/interface/interface_shared.py", line 449, in _deliver_record
+    handle = mailbox._deliver_record(record, interface=self)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/wandb/sdk/lib/mailbox.py", line 455, in _deliver_record
+    handle = mailbox._deliver_record(record, interface=self)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/wandb/sdk/lib/mailbox.py", line 455, in _deliver_record
+    interface._publish(record)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/wandb/sdk/interface/interface_sock.py", line 51, in _publish
+    interface._publish(record)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/wandb/sdk/interface/interface_sock.py", line 51, in _publish
+    self._sock_client.send_record_publish(record)
+    self._sock_client.send_record_publish(record)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/wandb/sdk/lib/sock_client.py", line 221, in send_record_publish
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/wandb/sdk/lib/sock_client.py", line 221, in send_record_publish
+    self.send_server_request(server_req)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/wandb/sdk/lib/sock_client.py", line 155, in send_server_request
+    self.send_server_request(server_req)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/wandb/sdk/lib/sock_client.py", line 155, in send_server_request
+    self._send_message(msg)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/wandb/sdk/lib/sock_client.py", line 152, in _send_message
+    self._send_message(msg)
+    self._sendall_with_error_handle(header + data)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/wandb/sdk/lib/sock_client.py", line 152, in _send_message
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/wandb/sdk/lib/sock_client.py", line 130, in _sendall_with_error_handle
+    self._sendall_with_error_handle(header + data)
+    sent = self._sock.send(data)
+  File "/local/anaconda3/envs/cosmicgnn/lib/python3.10/site-packages/wandb/sdk/lib/sock_client.py", line 130, in _sendall_with_error_handle
+BrokenPipeError: [Errno 32] Broken pipe
+    sent = self._sock.send(data)
+BrokenPipeError: [Errno 32] Broken pipe
