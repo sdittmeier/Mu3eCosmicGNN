@@ -6,8 +6,8 @@ stage_dir: /mnt/data1/karres/cosmics_test/fully_connected_cosmic_michel_recurl_o
 project: CosmicGNN # Used in logging
 
 # Dataset parameters
-data_split: [10596, 1324, 1324] # Number of [training, validation, testing] examples
-
+data_split: [10596, 1324, 1324] # Number of [training, validation, testing] examples cosmic
+#data_split: [10562, 1320, 1321] # Number of [training, validation, testing] examples cosmic michel
 # Evaluation parameters
 target_tracks:
 

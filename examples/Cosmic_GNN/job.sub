@@ -9,7 +9,7 @@ should_transfer_files   = YES
 when_to_transfer_output = ON_EXIT
 
 # CPUS = GPUS * 72 (maximises efficiency for eg metric learning, but requires too many CPUs/GPU once we have 8 installed)
-request_cpus            = 64   
+request_cpus            = 32 
 # once we have 8 GPUs, this should be the maximum, unless really needed
 request_gpus            = 1
 request_memory          = 32G
