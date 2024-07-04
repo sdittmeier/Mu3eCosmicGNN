@@ -1,14 +1,14 @@
 stage: edge_classifier
 model: InteractionGNN
-input_dir: /mnt/data1/karres/cosmics_test/fully_connected_cosmic/ # Should contain the files used in training and inference
-stage_dir: /mnt/data1/karres/cosmics_test/gnn/ # A directory to be created that will store logs, artifacts, and output data
-project: CosmicGNN # Used in logging
+input_dir: /mnt/data1/karres/cosmics_test/fully_connected_cosmic_michel/ # Should contain the files used in training and inference
+stage_dir: /mnt/data1/dittmeier/cosmics_test/gnn/ # A directory to be created that will store logs, artifacts, and output data
+project: SebCosmicGNN # Used in logging
 accelerator: gpu
-devices: [7]
+devices: [6]
 nodes: 1
 
 # Dataset parameters
-data_split: [10596, 1324, 1324] # Number of [training, validation, testing] examples
+data_split: [1000, 100, 100] # Number of [training, validation, testing] examples
 # input_cut: 0.2
 
 # Truth and weighting parameters. Syntax is...
@@ -21,7 +21,7 @@ weighting:
   - weight: 1.
     conditions: 
       y: False
-  - weight: 0.
+  - weight: -1.
     conditions:
       y: True
   - weight: 3.
@@ -37,16 +37,16 @@ hard_cuts:
 # Model parameters
 edge_cut: 0.5
 node_features: [r,  phi, z]
-node_scales: [1000, 3.14,  1000]
-hidden: 128
-n_graph_iters: 8
+node_scales: [100, 3.14,  600]
+hidden: 32
+n_graph_iters: 4
 nb_node_layer: 2
 nb_edge_layer: 2
 layernorm: True
 batchnorm: False
-aggregation: [sum, mean, max, std]
-hidden_activation: SiLU
-output_activation: Tanh
+#aggregation: [sum, mean, max, std]
+hidden_activation: ReLU
+output_activation: ReLU
 
 # Training parameters
 warmup: 5
