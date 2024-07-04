@@ -34,6 +34,9 @@ class AthenaRootReader(EventReader):
 
         self.tree_name = "GNN4ITk"
         self.setnames = ["train", "valid", "test"]
+        self.fix_index_mismatch = self.config.get(
+            "fix_index_mismatch", False
+        )  # fix bug only for old dump version
 
         # Get list of all root files in input_dir (sorted)
         input_sets = {
@@ -49,6 +52,9 @@ class AthenaRootReader(EventReader):
         self.evtsmap = {}
 
         for dataset_name, evt_list_fname in input_sets.items():
+            self.log.info(
+                f"Using events listed in {evt_list_fname} for {dataset_name} sample"
+            )
             with open(evt_list_fname) as evt_list_file:
                 for line in evt_list_file:
                     # we ignore the run number
@@ -112,6 +118,11 @@ class AthenaRootReader(EventReader):
         self.testset = testset
         self.module_lookup = None
 
+        if self.config.get("overlap_sp_cut"):
+            self.log.info(
+                f"Selecting overlap space points with flag < {self.config.get('overlap_sp_cut')}"
+            )
+
     def _build_single_csv(self, event, output_dir=None):
         # Trick to make all workers are using separate CPUs
         # https://stackoverflow.com/questions/15639779/why-does-multiprocessing-use-only-a-single-core-after-i-import-numpy
@@ -127,7 +138,13 @@ class AthenaRootReader(EventReader):
             return
 
         # Determine which root file and wich TTree entry to read given the event number to be processed
-        filename = self.config["input_dir"] + "/" + self.evtsmap[event]["fname"]
+        # In case we use files on grid local disk (with xrootd), we provide the full file name (base name otherwise)
+        if self.config["input_dir"] == "XROOTD":
+            filename = self.evtsmap[event]["fname"]
+        else:
+            fname = os.path.basename(self.evtsmap[event]["fname"])
+            filename = os.path.join(self.config["input_dir"], fname)
+
         entry = self.evtsmap[event]["entry"]
 
         # From the TTree extract numpy arrays of interesting TBranches, only for the desired event number
@@ -140,6 +157,24 @@ class AthenaRootReader(EventReader):
                 f"Opening file {filename} to read entry {entry} corresponding to event"
                 f" number {event}"
             )
+
+            # Starting from v5 of dump, we have the branch 'SPisOverlap', together with the fix
+            # of SP->cluster indices (not more +1 shift to be corrected)
+            if "SPisOverlap" not in tree.keys():
+                self.fix_index_mismatch = True
+                self.log.info(
+                    "You are running on file older than v5, the +1 shift in cluster indices will be corrected"
+                )
+                # Also remove SPisOverlap from spacepoint_branch_names and truth_col_order
+                if "SPisOverlap" in athena_root_utils.spacepoint_branch_names:
+                    athena_root_utils.spacepoint_branch_names.remove("SPisOverlap")
+                if "SPisOverlap" in athena_root_utils.truth_col_order:
+                    athena_root_utils.truth_col_order.remove("SPisOverlap")
+
+            if "SPisOverlap" not in tree.keys() and self.config.get("overlap_sp_cut"):
+                raise ValueError(
+                    "Error, we will try to cut on the overlap space points flag while it is absent in the TTree!"
+                )
 
             # Get the dict of np arrays corresponding the the wished TBranches, only for the desired event number
             part_branches = tree.arrays(
@@ -167,7 +202,7 @@ class AthenaRootReader(EventReader):
             # Read particles
             particles = athena_root_utils.read_particles(part_branches)
             if particles is None:
-                warnings.warn(f"No particles found in event numbre {event}")
+                warnings.warn(f"No particles found in event number {event}")
                 return
             particles = athena_utils.convert_barcodes(particles)
             particles = particles.astype(
@@ -176,7 +211,9 @@ class AthenaRootReader(EventReader):
             self.log.debug("Particles data frame made")
 
             # Read spacepoints
-            spacepoints = athena_root_utils.read_spacepoints(sp_branches)
+            spacepoints = athena_root_utils.read_spacepoints(
+                sp_branches, self.config.get("overlap_sp_cut", 999)
+            )
             self.log.debug("Space points data frame made")
             if self.log.getEffectiveLevel() == logging.DEBUG:
                 print("\nSpace points\n")
@@ -184,7 +221,9 @@ class AthenaRootReader(EventReader):
                 print(spacepoints.dtypes)
 
             # Read clusters
-            clusters = athena_root_utils.read_clusters(cl_branches, particles)
+            clusters = athena_root_utils.read_clusters(
+                cl_branches, particles, self.fix_index_mismatch
+            )
             self.log.debug("Clusters data frame made")
             if self.log.getEffectiveLevel() == logging.DEBUG:
                 print("\nClusters\n")

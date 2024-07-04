@@ -38,13 +38,29 @@ class PyModuleMap(GraphConstructionStage):
         Initialise the PyModuleMap - a python implementation of the Triplet Module Map.
         """
         self.hparams = hparams
-        self.use_pyg = True
         self.use_csv = True
         self.gpu_available = torch.cuda.is_available()
         if self.gpu_available:
             self.device = "cuda"
         else:
             self.device = "cpu"
+
+        # Logging config
+        self.log = logging.getLogger("PyModuleMap")
+        log_level = (
+            self.hparams["log_level"].upper()
+            if "log_level" in self.hparams
+            else "WARNING"
+        )
+
+        if log_level == "WARNING":
+            self.log.setLevel(logging.WARNING)
+        elif log_level == "INFO":
+            self.log.setLevel(logging.INFO)
+        elif log_level == "DEBUG":
+            self.log.setLevel(logging.DEBUG)
+        else:
+            raise ValueError(f"Unknown logging level {log_level}")
 
     def to(self, device):
         return self
@@ -54,38 +70,52 @@ class PyModuleMap(GraphConstructionStage):
         Load in the module map dataframe. Should be in CSV format.
         """
 
-        names = [
-            "mid_1",
-            "mid_2",
-            "mid_3",
-            "occurence",
-            "z0max_12",
-            "z0min_12",
-            "dphimax_12",
-            "dphimin_12",
-            "phiSlopemax_12",
-            "phiSlopemin_12",
-            "detamax_12",
-            "detamin_12",
-            "z0max_23",
-            "z0min_23",
-            "dphimax_23",
-            "dphimin_23",
-            "phiSlopemax_23",
-            "phiSlopemin_23",
-            "detamax_23",
-            "detamin_23",
-            "diff_dzdr_max",
-            "diff_dzdr_min",
-            "diff_dydx_max",
-            "diff_dydx_min",
-        ]
-        self.MM = pd.read_csv(
-            self.hparams["module_map_path"],
-            names=names,
-            header=None,
-            delim_whitespace=True,
-        )
+        module_map_filename = self.hparams["module_map_path"]
+
+        self.log.info(f"Loading module map from {module_map_filename}")
+
+        if module_map_filename.endswith(".root"):
+            self.MM = utils.load_module_map_uproot(self.hparams["module_map_path"])
+        elif module_map_filename.endswith(".csv") or module_map_filename.endswith(
+            ".txt"
+        ):
+            names = [
+                "mid_1",
+                "mid_2",
+                "mid_3",
+                "occurence",
+                "z0max_12",
+                "z0min_12",
+                "dphimax_12",
+                "dphimin_12",
+                "phiSlopemax_12",
+                "phiSlopemin_12",
+                "detamax_12",
+                "detamin_12",
+                "z0max_23",
+                "z0min_23",
+                "dphimax_23",
+                "dphimin_23",
+                "phiSlopemax_23",
+                "phiSlopemin_23",
+                "detamax_23",
+                "detamin_23",
+                "diff_dzdr_max",
+                "diff_dzdr_min",
+                "diff_dydx_max",
+                "diff_dydx_min",
+            ]
+            self.MM = pd.read_csv(
+                self.hparams["module_map_path"],
+                names=names,
+                header=None,
+                delim_whitespace=True,
+            )
+        else:
+            raise ValueError(
+                "Unsupported module map file extension, should be .root, .txt or .csv"
+            )
+
         self.MM_1, self.MM_2, self.MM_triplet = self.get_module_features(self.MM)
 
         if self.gpu_available:
@@ -100,12 +130,13 @@ class PyModuleMap(GraphConstructionStage):
         self.load_module_map()
         output_dir = os.path.join(self.hparams["stage_dir"], data_name)
         os.makedirs(output_dir, exist_ok=True)
-        logging.info(f"Building graphs for {data_name}")
+        self.log.info(f"Building graphs for {data_name}")
 
         for graph, _, truth in tqdm(dataset):
             if graph is None:
                 continue
             if os.path.exists(os.path.join(output_dir, f"event{graph.event_id}.pyg")):
+                print(f"Graph {graph.event_id} already exists, skipping...")
                 continue
 
             graph = self.build_graph(graph, truth)
@@ -210,6 +241,11 @@ class PyModuleMap(GraphConstructionStage):
 
         doublet_edges = doublet_edges.drop_duplicates()
         graph.edge_index = torch.tensor(doublet_edges.values.T, dtype=torch.long)
+        if not torch.equal(
+            graph.hit_id, torch.arange(graph.hit_id.size(0), device=graph.hit_id.device)
+        ):
+            # We need to re-index the edge index since there are missing nodes
+            self.reindex_edge_index(graph)
         y, truth_map = utils.graph_intersection(
             graph.edge_index.to(device),
             graph.track_edges.to(device),
@@ -220,6 +256,17 @@ class PyModuleMap(GraphConstructionStage):
         graph.truth_map = truth_map.cpu()
 
         return graph
+
+    def reindex_edge_index(self, graph):
+        """
+        Reindex the edge index to account for missing nodes.
+        Missing nodes are likely due to a hard cut, and are not a problem.
+        """
+        hit_id_to_vector_index = torch.full(
+            (graph.hit_id.max() + 1,), -1, dtype=torch.long
+        )
+        hit_id_to_vector_index[graph.hit_id] = torch.arange(graph.hit_id.size(0))
+        graph.edge_index = hit_id_to_vector_index[graph.edge_index]
 
     def get_hit_features(self, hits):
         hits = hits.rename(columns={"hit_id": "hid", "module_id": "mid"})
