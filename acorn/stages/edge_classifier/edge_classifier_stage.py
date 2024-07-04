@@ -373,16 +373,23 @@ class EdgeClassifierStage(LightningModule):
         )
 
         if(target_true == 0):
-            print("WARNING: target_true is 0")  # do sth!
+            if(target_true_positive == 0):
+                target_eff = 1
+            else:
+                target_eff = 0
+        else:
+            target_eff = target_true_positive / target_true
         if(edge_positive == 0):
-            print("WARNING: edge_positive is 0") # do sth!
+            target_pur = 1
+            total_pur = 1
+        else:
+            target_pur = target_true_positive / edge_positive
+            total_pur = all_true_positive / edge_positive
         if(true_and_fake_positive == 0):
-            print("WARNING: true_and_fake_positive is 0") # do sth!
+            purity = 1
+        else:
+            purity = target_true_positive / true_and_fake_positive
 
-        target_eff = target_true_positive / target_true
-        target_pur = target_true_positive / edge_positive
-        total_pur = all_true_positive / edge_positive
-        purity = target_true_positive / true_and_fake_positive
         current_lr = self.optimizers().param_groups[0]["lr"]
 
         self.log_dict(
