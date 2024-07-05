@@ -98,6 +98,7 @@ def convert_to_latest_pyg_format(event):
     """
     return PygData.from_dict(event.__dict__)
 
+import shutil
 
 def handle_weighting(event, weighting_config):
     """
@@ -124,10 +125,24 @@ def handle_weighting(event, weighting_config):
 
     for weight_spec in weighting_config:
         weight_val = weight_spec["weight"]
+<<<<<<< HEAD
         #print('Event:', event.event_id)    
         #print(get_weight_mask(event, weight_spec["conditions"]))
         #print(weights)
         #print(weights[get_weight_mask(event, weight_spec["conditions"])])
+=======
+        '''
+        if get_weight_mask(event, weight_spec["conditions"]).dim() != 1:
+            print('Event:', event.event_id)
+            src = '/mnt/data1/karres/cosmics_test/fully_connected_cosmic_michel/valset/event'+str(event.event_id)+'.pyg'
+            dst = '/mnt/data1/karres/cosmics_test/fully_connected_cosmic_michel/weird_val_events/event'+str(event.event_id)+'.pyg'
+            shutil.move(src,dst)
+            continue
+        
+        print(weights)
+        print(weights[get_weight_mask(event, weight_spec["conditions"])])
+        '''
+>>>>>>> mu3e_reader
         weights[get_weight_mask(event, weight_spec["conditions"])] = weight_val
 
     return weights
@@ -337,6 +352,10 @@ def get_weight_mask(event, weight_conditions):
         ), f"Condition key {condition_key} not found in event keys {get_pyg_data_keys(event)}"
         condition_lambda = get_condition_lambda(condition_key, condition_val)
         value_mask = condition_lambda(event)
+        #print('Condition_key: ',condition_key)
+        #print('Condition_val: ',condition_val)
+        #print('Condition_lambda: ',condition_lambda)
+        #print('Value_mask: ',value_mask)
         graph_mask = graph_mask * map_tensor_handler(
             value_mask,
             output_type="edge-like",
@@ -344,5 +363,4 @@ def get_weight_mask(event, weight_conditions):
             edge_index=event.edge_index,
             truth_map=event.truth_map,
         )
-
     return graph_mask

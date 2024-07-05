@@ -21,6 +21,7 @@ from acorn.utils.version_utils import get_pyg_data_keys
 
 def fc_efficiency_purity(lightning_module, plot_config, config):
     '''
+    OWN FUNCTION
     Plot a histogram of the efficiency and purity of the fully connected graph
     '''
 
@@ -69,6 +70,7 @@ def fc_efficiency_purity(lightning_module, plot_config, config):
 
 def fc_edge_distributions(lightning_module, plot_config, config):
     '''
+    OWN FUNCTION
     Plot histograms for distance between nodes, angle between nodes
     '''
 
@@ -116,6 +118,7 @@ def fc_edge_distributions(lightning_module, plot_config, config):
 
 def multi_graph_num_edges(lightning_module, plot_config, config):
     '''
+    OWN FUNCTION
     Plot the number of edges in each graph for multiple datasets
     '''
     num_datasets = len(plot_config["datasets"])

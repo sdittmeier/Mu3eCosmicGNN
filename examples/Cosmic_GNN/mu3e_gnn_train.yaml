@@ -1,14 +1,17 @@
 stage: edge_classifier
 model: InteractionGNN
 input_dir: /mnt/data1/karres/cosmics_test/fully_connected_cosmic_michel/ # Should contain the files used in training and inference
-stage_dir: /mnt/data1/dittmeier/cosmics_test/gnn/ # A directory to be created that will store logs, artifacts, and output data
-project: SebCosmicGNN # Used in logging
+stage_dir: /mnt/data1/karres/cosmics_test/cosmic_michel_gnn/ # A directory to be created that will store logs, artifacts, and output data
+project: CosmicGNN # Used in logging
 accelerator: gpu
-devices: [6]
+devices: 1
 nodes: 1
 
 # Dataset parameters
-data_split: [1000, 100, 100] # Number of [training, validation, testing] examples
+#data_split: [100, 10, 10] # Number of [training, validation, testing] examples
+#data_split: [10587,1324,1324] #Full cosmic only set w/o weird events (didnt check test set)
+data_split: [10424,1301,1321] #Full cosmic michel set w/o weird events (didnt check test set)
+
 # input_cut: 0.2
 
 # Truth and weighting parameters. Syntax is...
