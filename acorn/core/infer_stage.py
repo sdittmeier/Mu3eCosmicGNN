@@ -69,6 +69,7 @@ def infer(config_file, verbose=None, checkpoint=None):
         lightning_infer(config, stage_module, checkpoint)
     else:
         stage_module.infer(config)
+    
 
 
 def lightning_infer(config, stage_module, checkpoint=None):
@@ -100,6 +101,12 @@ def lightning_infer(config, stage_module, checkpoint=None):
         devices=devices,
         num_nodes=config["nodes"],
     )
+
+    print('GNN model:')
+    print("hidden dims:", stage_module._hparams["hidden"])
+    print("message passing steps:", stage_module._hparams["n_graph_iters"])
+    print("edge layers:", stage_module._hparams["nb_edge_layer"])
+    print("node layers:", stage_module._hparams["nb_node_layer"])
 
     with torch.inference_mode():
         trainer.predict(stage_module)

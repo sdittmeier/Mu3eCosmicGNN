@@ -98,7 +98,7 @@ def convert_to_latest_pyg_format(event):
     """
     return PygData.from_dict(event.__dict__)
 
-import shutil
+#import shutil
 
 def handle_weighting(event, weighting_config):
     """
@@ -128,8 +128,8 @@ def handle_weighting(event, weighting_config):
         '''
         if get_weight_mask(event, weight_spec["conditions"]).dim() != 1:
             print('Event:', event.event_id)
-            src = '/mnt/data1/karres/cosmics_test/fully_connected_cosmic_michel/valset/event'+str(event.event_id)+'.pyg'
-            dst = '/mnt/data1/karres/cosmics_test/fully_connected_cosmic_michel/weird_val_events/event'+str(event.event_id)+'.pyg'
+            src = '/mnt/data1/karres/cosmics_test/fully_connected_cosmic_michel/trainset/event'+str(event.event_id)+'.pyg'
+            dst = '/mnt/data1/karres/cosmics_test/fully_connected_cosmic_michel/weird_events/event'+str(event.event_id)+'.pyg'
             shutil.move(src,dst)
             continue
         

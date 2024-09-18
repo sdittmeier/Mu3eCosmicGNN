@@ -364,11 +364,15 @@ def graph_scoring_efficiency(lightning_module, plot_config, config):
             err,
             xlabel,
             plot_config["title"],
-            plot_config.get("ylim", [0.9, 1.04]),
+            plot_config.get("ylim", [-0.04, 1.04]),
             "Efficiency",
             logx=logx,
         )
 
+        legend_text = 'Data: Cosmic with Michel ('+dataset_name+'), '+f'Mean efficiency: {target_efficiency:.4f}, '+f'Mean purity: {target_purity:.4f}\n'+'GNN: 4 hidden dims, 6 msg passing steps, 1 edge layer, 4 node layers'
+        ax.grid()
+        ax.text(0.95, 0.10, legend_text, transform=ax.transAxes, fontsize=12, verticalalignment='bottom', horizontalalignment='right', bbox=dict(facecolor='white', alpha=0.5))
+        '''
         # Save the plot
         atlasify(
             "Internal",
@@ -385,7 +389,7 @@ def graph_scoring_efficiency(lightning_module, plot_config, config):
             + "\n"
             + f"Evaluated on {dataset.len()} events in {dataset_name}",
         )
-
+        '''
         fig.savefig(os.path.join(config["stage_dir"], filename))
         print(
             "Finish plotting. Find the plot at"
@@ -426,6 +430,7 @@ def graph_roc_curve(lightning_module, plot_config, config):
     all_y_truth, all_scores, masked_scores, masked_y_truth = [], [], [], []
     masks = []
     dataset_name = config["dataset"]
+    dataset_name = "testset"
     dataset = getattr(lightning_module, dataset_name)
 
     for event in tqdm(dataset):
@@ -452,25 +457,37 @@ def graph_roc_curve(lightning_module, plot_config, config):
 
     fig, ax = plt.subplots(figsize=(8, 6))
     # Get the ROC curve
+    '''
     fpr, tpr, _ = roc_curve(all_y_truth, all_scores)
     full_auc_score = auc(fpr, tpr)
+    '''
 
     # Plot the ROC curve
+    '''
     ax.plot(fpr, tpr, color="black", label="ROC curve")
+    '''
 
     # Get the ROC curve
     fpr, tpr, _ = roc_curve(masked_y_truth, masked_scores)
     masked_auc_score = auc(fpr, tpr)
 
     # Plot the ROC curve
-    ax.plot(fpr, tpr, color="green", label="masked ROC curve")
+    ax.plot(fpr, tpr, color="green", label="ROC curve")
 
-    ax.plot([0, 1], [0, 1], color="black", linestyle="--", label="Random classifier")
+    ax.plot(np.logspace(-10,0,100), np.logspace(-10,0,100), color="black", linestyle="--", label="Random classifier")
     ax.set_xlabel("False Positive Rate", ha="right", x=0.95, fontsize=14)
     ax.set_ylabel("True Positive Rate", ha="right", y=0.95, fontsize=14)
     ax.set_xscale("log")
-    ax.set_yscale("log")
-    ax.legend(loc="lower right", fontsize=14)
+    ax.set_yscale("linear")
+    ax.set_xlim(9e-5, 1.1)
+    ax.set_ylim(-0.1, 1.1)
+    ax.legend(loc="lower right", fontsize=12)
+
+    legend_text = 'Data: Cosmic with Michel ('+dataset_name+'), '+f'AUC: {masked_auc_score: .3f}\n'
+    legend_text = legend_text +'GNN: 24 hidden dims, 4 msg passing steps, 2 edge layers, 2 node layers'
+    ax.grid()
+    ax.text(0.05, 0.95, legend_text, transform=ax.transAxes, fontsize=12, verticalalignment='top', horizontalalignment='left', bbox=dict(facecolor='white', alpha=0.5))
+    '''
     ax.text(
         0.95,
         0.20,
@@ -480,8 +497,19 @@ def graph_roc_curve(lightning_module, plot_config, config):
         transform=ax.transAxes,
         fontsize=14,
     )
-
+    
+    ax.text(
+        0.95,
+        0.20,
+        f"AUC: {masked_auc_score: .3f}",
+        ha="right",
+        va="bottom",
+        transform=ax.transAxes,
+        fontsize=14,
+    )
+    '''
     # Save the plot
+    '''
     atlasify(
         "Internal",
         f"{plot_config['title']} \n"
@@ -491,6 +519,7 @@ def graph_roc_curve(lightning_module, plot_config, config):
         + "\n"
         + f"Evaluated on {dataset.len()} events in {dataset_name}",
     )
+    '''
     filename_template = plot_config.get("filename")
     filename = (
         f"{filename_template}_roc_curve.png"
@@ -501,16 +530,27 @@ def graph_roc_curve(lightning_module, plot_config, config):
     fig.savefig(filename)
     print("Finish plotting. Find the ROC curve at" f" {filename}")
     plt.close()
+
     fig, ax = plt.subplots(figsize=(8, 6))
     all_y_truth = all_y_truth.astype(np.int16)
     all_y_truth[~masks] = 2
+
     labels = np.array(["Fake"] * len(all_y_truth))
     labels[all_y_truth == 1] = "Target True"
     labels[all_y_truth == 2] = "Non-target True"
+
     weight = 1 / dataset.len()
+
     ax = plot_score_histogram(all_scores, labels, ax=ax, inverse_dataset_length=weight)
     ax.set_xlabel("Edge score", ha="right", x=0.95, fontsize=14)
     ax.set_ylabel("Count/event", ha="right", y=0.95, fontsize=14)
+
+    legend_text = 'Data: Cosmic with Michel ('+dataset_name+')\n'
+    legend_text = legend_text + 'GNN: 24 hidden dims, 4 msg passing steps, 2 edge layers, 2 node layers'
+    ax.grid()
+    ax.text(0.95, 0.95, legend_text, transform=ax.transAxes, fontsize=12, verticalalignment='top', horizontalalignment='right', bbox=dict(facecolor='white', alpha=0.5))
+    plt.tight_layout()
+    '''
     atlasify(
         "Internal",
         "Score Distribution \n"
@@ -520,11 +560,14 @@ def graph_roc_curve(lightning_module, plot_config, config):
         + "\n"
         + f"Evaluated on {dataset.len()} events in {dataset_name}",
     )
+    '''
     filename = (
         f"{filename_template}_score_distribution.png"
         if filename_template is not None
         else "score_distribution.png"
     )
+    ax.set_yscale("log")
+    #ax.set_ylim(0, 4)    
     filename = os.path.join(config["stage_dir"], filename)
     fig.savefig(filename)
     print("Finish plotting. Find the score distribution at" f" {filename}")

@@ -94,6 +94,7 @@ def train(
             # track hyperparameters and run metadata
             config=config,
         )
+        print("wandb sweep initiated")
         config.update(dict(wandb.config))
 
     print(yaml.dump(config))

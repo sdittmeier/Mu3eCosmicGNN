@@ -192,6 +192,7 @@ def plot_score_histogram(scores, y, bins=100, ax=None, inverse_dataset_length=1)
         palette="colorblind",
         fill=False,
     )
+    
     sns.move_legend(
         ax,
         "lower center",
@@ -200,5 +201,5 @@ def plot_score_histogram(scores, y, bins=100, ax=None, inverse_dataset_length=1)
         title=None,
         frameon=False,
     )
-
+    
     return ax

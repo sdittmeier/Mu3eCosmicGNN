@@ -249,6 +249,9 @@ def plot_eff(
     true_vals, true_bins = np.histogram(true_x, bins=x_bins)
     reco_vals, reco_bins = np.histogram(reco_x, bins=x_bins)
 
+    print("True values: ", true_vals)
+    print("Reco values: ", reco_vals)
+
     # Plot the ratio of the histograms as an efficiency
     eff, err = get_ratio(reco_vals, true_vals)
 
@@ -271,6 +274,10 @@ def plot_eff(
     if "y_lim" in varconf:
         ax.set_ylim(ymin=varconf["y_lim"][0], ymax=varconf["y_lim"][1])
 
+    ax.set_xscale('log')
+
+    
+    '''
     atlasify(
         "Internal",
         r"$\sqrt{s}=14$TeV, $t \bar{t}$, $\langle \mu \rangle = 200$, primaries ($t"
@@ -278,7 +285,7 @@ def plot_eff(
         r"$p_T > 1$GeV, $|\eta| < 4$",
         enlarge=1,
     )
-
+    '''
     # Save the plot
     fig.savefig(save_path)
 

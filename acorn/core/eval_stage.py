@@ -69,7 +69,7 @@ def evaluate(config_file, verbose=None, checkpoint=None, dataset="valset"):
     stage = config["stage"]
     model = config["model"]
     stage_module = str_to_class(stage, model)
-    config["dataset"] = dataset
+    #config["dataset"] = dataset
 
     if issubclass(stage_module, LightningModule):
         checkpoint_path = (
