@@ -6,6 +6,7 @@ import pandas as pd
 import os
 
 def hit_id_to_particle_id_map(graph):
+    print('Building map')
     track_edges = graph.track_edges
     particle_types = graph.particle_type
 
@@ -13,7 +14,17 @@ def hit_id_to_particle_id_map(graph):
 
     for edge, pid in zip(track_edges.T, particle_types):
         for hit_id in edge:
-            hit_to_particle_map[hit_id.item()] = pid.item()
+            hit_to_particle_map[hit_id] = pid
+        
+        missing_keys = set(range(len(graph.x) + 1)) - hit_to_particle_map.keys()
+        if len(missing_keys) > 0:
+            print('Error: Hit id not found in hit_to_particle_map')
+            print('Setting missing hit ids to 0')
+            print('Missing hit ids:', missing_keys)
+
+            for key in missing_keys:
+                hit_to_particle_map[key] = 0
+
 
     return hit_to_particle_map
 
@@ -38,7 +49,7 @@ def get_num_hits(graph):
 
 def remove_particle_edges(edges_list, particle_type, map):
     '''
-    Input: edge_index or track_edges, pdg ID to be removed and mapping from hit id to pdg ID
+    Input: edge_index or track_edges, |pdg ID| to be kept and mapping from hit id to pdg ID
     Output: edge_index or track_edges without edges corresponding to the specified pdg ID
     '''
     remove = []
