@@ -122,29 +122,29 @@ def handle_weighting(event, weighting_config):
     # Set the default values, which will be overwritten if specified in the config
     weights = torch.zeros_like(event.y, dtype=torch.float)
     weights[event.y == 0] = 1.0
+    print(f"event.y: {event.y}")
 
     for weight_spec in weighting_config:
         weight_val = weight_spec["weight"]
-<<<<<<< HEAD
-        #print('Event:', event.event_id)    
-        #print(get_weight_mask(event, weight_spec["conditions"]))
-        #print(weights)
-        #print(weights[get_weight_mask(event, weight_spec["conditions"])])
-=======
-        '''
+        
         if get_weight_mask(event, weight_spec["conditions"]).dim() != 1:
-            print('Event:', event.event_id)
-            src = '/mnt/data1/karres/cosmics_test/fully_connected_cosmic_michel/valset/event'+str(event.event_id)+'.pyg'
-            dst = '/mnt/data1/karres/cosmics_test/fully_connected_cosmic_michel/weird_val_events/event'+str(event.event_id)+'.pyg'
-            shutil.move(src,dst)
+            print('PROBLEM!!!Event:', str(event.event_id[0]))
+            print(weights)
+            print(get_weight_mask(event, weight_spec["conditions"]))
+            #src = '/mnt/data1/karres/cosmics_test/feature_store_cosmic_michel/trainset/event'+str(event.event_id[0])+'-graph.pyg'
+            #os.remove(src)
+            #src = '/mnt/data1/karres/cosmics_test/feature_store_cosmic_michel/trainset/event'+str(event.event_id[0])+'-particles.csv'
+            #os.remove(src)
+            #src = '/mnt/data1/karres/cosmics_test/feature_store_cosmic_michel/trainset/event'+str(event.event_id[0])+'-truth.csv'
+            #os.remove(src)
             continue
         
-        print(weights)
-        print(weights[get_weight_mask(event, weight_spec["conditions"])])
-        '''
->>>>>>> mu3e_reader
+        
         weights[get_weight_mask(event, weight_spec["conditions"])] = weight_val
-
+        if(weights[-1]==3):
+            print('Last weight is high! Event:', str(event.event_id[0]))
+            print(weights)
+            print(get_weight_mask(event, weight_spec["conditions"]))
     return weights
 
 

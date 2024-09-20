@@ -35,7 +35,7 @@ class MetricLearning(GraphConstructionStage, LightningModule):
         """
         Initialise the Lightning Module that can scan over different embedding training regimes
         """
-
+        self.dbg_cnt = 0
         # Construct the MLP architecture
         in_channels = len(hparams["node_features"])
 
@@ -383,7 +383,7 @@ class MetricLearning(GraphConstructionStage, LightningModule):
         weights = self.get_weights(batch)
 
         d = self.get_distances(embedding, batch.edge_index)
-
+        #print(batch.y, d, weights)
         loss = self.weighted_hinge_loss(batch.y, d, weights)
 
         if hasattr(self, "trainer") and self.trainer.state.stage in [
@@ -405,6 +405,7 @@ class MetricLearning(GraphConstructionStage, LightningModule):
         signal_true_edges = build_signal_edges(
             batch, self.hparams["weighting"], true_edges
         )
+
         true_pred_edges = pred_edges[:, truth == 1]
         signal_true_pred_edges = pred_edges[:, (truth == 1) & (weights > 0)]
 
@@ -413,6 +414,19 @@ class MetricLearning(GraphConstructionStage, LightningModule):
         total_pur = true_pred_edges.shape[1] / pred_edges.shape[1]
         signal_pur = signal_true_pred_edges.shape[1] / pred_edges.shape[1]
         f1 = 2 * (signal_eff * signal_pur) / (signal_eff + signal_pur)
+
+        if(signal_eff > 1):
+            self.dbg_cnt += 1
+            print(f"dbg_cnt: {self.dbg_cnt}")
+            print(f"event id: {batch.event_id}")
+            print(f"Signal eff: {signal_eff}")
+            print(f"pred_edges: {pred_edges.T}")
+            print(f"weights: {weights}")
+
+            print(f"True edges: {true_edges.T}")
+            print(f"Signal edges: {signal_true_edges.T}")
+            #print(f"True pred edges: {true_pred_edges.T}")
+            print(f"Signal true pred edges: {signal_true_pred_edges.T}")
 
         current_lr = self.optimizers().param_groups[0]["lr"]
         self.log_dict(
