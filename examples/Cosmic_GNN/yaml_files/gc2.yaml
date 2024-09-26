@@ -2,21 +2,19 @@
 stage: graph_construction
 model: FullyConnected
 input_dir: /mnt/data1/karres/cosmics_test/feature_store_cosmic_michel/ # Should contain the files used in training and inference
-stage_dir: /mnt/data1/karres/cosmics_test/fully_connected_cosmic_michel_angle_cut_225/ # A directory to be created that will store logs, artifacts, and output data
+stage_dir: /mnt/data1/karres/cosmics_test/angle_cut_datasets/fully_connected_cosmic_michel_angle_cut_250pi/ # A directory to be created that will store logs, artifacts, and output data
 project: CosmicGNN # Used in logging
 
-# FC graph cuts put None to skip the cut
+# FC graph cuts put -1 to skip the cut
 ladder_cut: True #
 recurl_cut: False # basically weaker distance cut
 distance_cut: -1 #[mm]
-angle_cut: 2.25  #[rad]
+angle_cut: 0.25  #units of pi
 
 
 # Number of [training, validation, testing] examples
 #data_split: [10596, 1324, 1324] # Cosmic unfiltered
-#data_split: [10475, 1308, 1308] # Cosmic filtered -> probably not right
-
 data_split: [10562, 1320, 1320] # Cosmic Michel unfiltered
-#data_split: [10441, 1306, 1306] # Cosmic Michel filtered -> probably not right
+#data_split: [15936, 1992, 1992] # Michel unfiltered
 
 max_workers: 32

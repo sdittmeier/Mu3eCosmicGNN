@@ -325,6 +325,8 @@ def graph_scoring_efficiency(lightning_module, plot_config, config):
     target_purity = true_positive[graph_truth].sum() / pred.sum()
     cumulative_efficiency = true_positive.sum() / len(target_pt)
 
+    #return target_efficiency, target_purity
+
     # get graph construction efficiency
     graph_construction_efficiency = graph_truth.mean()
 
@@ -346,7 +348,7 @@ def graph_scoring_efficiency(lightning_module, plot_config, config):
     pt_units = "GeV" if "pt_units" not in plot_config else plot_config["pt_units"]
 
     filename = plot_config.get("filename", "edgewise_efficiency")
-
+    '''
     for true_pos_hist, true_hist, bins, xlabel, logx, filename in zip(
         [true_pos_pt_hist, true_pos_eta_hist],
         [true_pt_hist, true_eta_hist],
@@ -354,6 +356,15 @@ def graph_scoring_efficiency(lightning_module, plot_config, config):
         [f"$p_T [{pt_units}]$", r"$\eta$"],
         [True, False],
         [f"{filename}_pt.png", f"{filename}_eta.png"],
+    ):
+    ''' 
+    for true_pos_hist, true_hist, bins, xlabel, logx, filename in zip(
+        [true_pos_pt_hist],
+        [true_pt_hist],
+        [true_pt_bins],
+        [f"$p_T [{pt_units}]$"],
+        [True],
+        [f"{filename}_pt.png"]
     ):
         # Divide the two histograms to get the edgewise efficiency
         hist, err = get_ratio(true_pos_hist, true_hist)
@@ -369,7 +380,10 @@ def graph_scoring_efficiency(lightning_module, plot_config, config):
             logx=logx,
         )
 
-        legend_text = 'Data: Cosmic with Michel ('+dataset_name+'), '+f'Mean efficiency: {target_efficiency:.4f}, '+f'Mean purity: {target_purity:.4f}\n'+'GNN: 4 hidden dims, 6 msg passing steps, 1 edge layer, 4 node layers'
+        legend_text = ('Dataset: '+str(config['data_split'][2])+' events from '+dataset_name+', ' f'Mean efficiency: {target_efficiency:.4f}, '+f'Mean purity: {target_purity:.4f}\n')
+        legend_text = legend_text + ('GNN: 24 hidden dims, 4 msg passing steps, 2 edge layer, 2 node layers\n')
+        legend_text = legend_text + (f"Edge score cut: {config.get('score_cut')}, GNN trained on {config.get('trained_on')}")
+    
         ax.grid()
         ax.text(0.95, 0.10, legend_text, transform=ax.transAxes, fontsize=12, verticalalignment='bottom', horizontalalignment='right', bbox=dict(facecolor='white', alpha=0.5))
         '''
@@ -396,7 +410,6 @@ def graph_scoring_efficiency(lightning_module, plot_config, config):
             f' {os.path.join(config["stage_dir"], filename)}'
         )
 
-
 def multi_edgecut_graph_scoring_efficiency(lightning_module, plot_config, config):
     """Plot graph scoring efficiency across multiple score cuts
 
@@ -407,6 +420,8 @@ def multi_edgecut_graph_scoring_efficiency(lightning_module, plot_config, config
             'filename_template': A TEMPLATE FOR FILENAME
         config (_type_): Usual config from lightning module and evaluation config
     """
+    eff = []
+    pur = []
 
     filenames = [
         f"{plot_config['template_filename']}_{cut*100:.0f}"
@@ -416,8 +431,25 @@ def multi_edgecut_graph_scoring_efficiency(lightning_module, plot_config, config
     for score_cut, filename in zip(plot_config["score_cuts"], filenames):
         config_["score_cut"] = score_cut
         plot_config["filename"] = filename
-        graph_scoring_efficiency(lightning_module, plot_config, config_)
+        #graph_scoring_efficiency(lightning_module, plot_config, config_)
+        
+        new_eff, new_pur = graph_scoring_efficiency(lightning_module, plot_config, config_)
+        eff.append(new_eff)
+        pur.append(new_pur)
 
+    data = pd.DataFrame({"score_cuts": plot_config["score_cuts"], "eff": eff, "pur": pur})
+    data.to_csv(os.path.join(config["stage_dir"], "eff_pur_vs_scorecut.csv"), index=False)
+
+    plt.plot(plot_config['score_cuts'], eff, label='Efficiency')
+    plt.plot(plot_config['score_cuts'], pur, label='Purity')
+    plt.legend()
+    plt.grid()
+    plt.yscale('log')
+    plt.xlabel('Score cut threshold')
+    plt.ylabel('Efficiency/Purity')
+    plt.title(f"Avg. Efficiency/Purity vs Score Cut Threshold \n {config['sample']} infered on a {config['trained_on']} trained GNN")
+    plt.savefig(os.path.join(config["stage_dir"], 'eff_pur_vs_scorecut_full.png'))
+    plt.show()
 
 def graph_roc_curve(lightning_module, plot_config, config):
     """
@@ -479,14 +511,17 @@ def graph_roc_curve(lightning_module, plot_config, config):
     ax.set_ylabel("True Positive Rate", ha="right", y=0.95, fontsize=14)
     ax.set_xscale("log")
     ax.set_yscale("linear")
-    ax.set_xlim(9e-5, 1.1)
+    ax.set_xlim(9e-9, 1.1)
     ax.set_ylim(-0.1, 1.1)
     ax.legend(loc="lower right", fontsize=12)
 
-    legend_text = 'Data: Cosmic with Michel ('+dataset_name+'), '+f'AUC: {masked_auc_score: .3f}\n'
-    legend_text = legend_text +'GNN: 24 hidden dims, 4 msg passing steps, 2 edge layers, 2 node layers'
+    
+    legend_text = (f"Dataset: {config.get('sample')} "+str(config['data_split'][2])+' events from '+dataset_name+', '+ f'AUC: {masked_auc_score: .3f}\n')
+    legend_text = legend_text + ('GNN: 24 hidden dims, 4 msg passing steps, 2 edge layer, 2 node layers\n')
+    legend_text = legend_text + (f"GNN trained on {config.get('trained_on')}")
+
     ax.grid()
-    ax.text(0.05, 0.95, legend_text, transform=ax.transAxes, fontsize=12, verticalalignment='top', horizontalalignment='left', bbox=dict(facecolor='white', alpha=0.5))
+    ax.text(0.05, 0.5, legend_text, transform=ax.transAxes, fontsize=12, verticalalignment='bottom', horizontalalignment='left', bbox=dict(facecolor='white', alpha=0.5))
     '''
     ax.text(
         0.95,
@@ -545,8 +580,9 @@ def graph_roc_curve(lightning_module, plot_config, config):
     ax.set_xlabel("Edge score", ha="right", x=0.95, fontsize=14)
     ax.set_ylabel("Count/event", ha="right", y=0.95, fontsize=14)
 
-    legend_text = 'Data: Cosmic with Michel ('+dataset_name+')\n'
-    legend_text = legend_text + 'GNN: 24 hidden dims, 4 msg passing steps, 2 edge layers, 2 node layers'
+    legend_text = (f"Dataset: {config.get('sample')}, "+str(config['data_split'][2])+' events from '+dataset_name+'\n')
+    legend_text = legend_text + ('GNN: 24 hidden dims, 4 msg passing steps, 2 edge layers, 2 node layers\n')
+    legend_text = legend_text + (f"Edge score cut: {config.get('score_cut')}, GNN trained on {config.get('trained_on')}")
     ax.grid()
     ax.text(0.95, 0.95, legend_text, transform=ax.transAxes, fontsize=12, verticalalignment='top', horizontalalignment='right', bbox=dict(facecolor='white', alpha=0.5))
     plt.tight_layout()

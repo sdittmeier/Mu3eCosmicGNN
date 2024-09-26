@@ -177,7 +177,7 @@ class FullyConnected(GraphConstructionStage):
 
         return edges
     
-    def _angle_cut(self, edges, truth, cut_at=np.pi):
+    def _angle_cut(self, edges, truth, cut_at=np.pi/2):
         new_edges = []
 
         for edge in edges:
@@ -192,12 +192,11 @@ class FullyConnected(GraphConstructionStage):
             y2 = hit2['y'].values
             z2 = hit2['z'].values  
 
-            if y1 > y2:
-                angle = np.arccos(y1-y2/np.sqrt((x1-x2)**2 + (y1-y2)**2) + (z1-z2)**2) 
-            else:
-                angle = np.arccos(y2-y1/np.sqrt((x1-x2)**2 + (y1-y2)**2) + (z1-z2)**2)
+            distance = np.sqrt((x1-x2)**2 + (y1-y2)**2 + (z1-z2)**2)
+            y = np.abs(y2-y1)
+            angle = np.arccos(y/distance)
 
-            if angle < cut_at:
+            if angle < np.pi*cut_at:
                 new_edges.append(edge)
 
         edges = np.array(new_edges)
