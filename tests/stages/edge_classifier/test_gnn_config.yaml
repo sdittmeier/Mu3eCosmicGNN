@@ -48,3 +48,4 @@ lr: 0.001
 factor: 0.9
 patience: 10
 max_epochs: 1
+log_wandb: false
