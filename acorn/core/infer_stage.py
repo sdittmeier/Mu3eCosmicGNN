@@ -91,6 +91,10 @@ def lightning_infer(config, stage_module, checkpoint=None):
         checkpoint_path, map_location=torch.device("cpu")
     )
     stage_module._hparams = {**stage_module._hparams, **config}
+    if not config.get("variable_with_prefix"):
+        stage_module._hparams = add_variable_name_prefix_in_config(
+            stage_module._hparams
+        )
 
     # setup stage
     stage_module.setup(stage="predict")

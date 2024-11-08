@@ -65,8 +65,6 @@ def evaluate(config_file, verbose=None, checkpoint=None, dataset="valset"):
     # load config
     with open(config_file, "r") as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
-    if not config.get("variable_with_prefix"):
-        config = add_variable_name_prefix_in_config(config)
 
     # load stage
     stage = config["stage"]
@@ -90,6 +88,9 @@ def evaluate(config_file, verbose=None, checkpoint=None, dataset="valset"):
             checkpoint_path, map_location=torch.device("cpu")
         )["hyper_parameters"]
         config = {**checkpoint_config, **config}
+
+    if not config.get("variable_with_prefix"):
+        config = add_variable_name_prefix_in_config(config)
 
     stage_module.evaluate(config)
 
