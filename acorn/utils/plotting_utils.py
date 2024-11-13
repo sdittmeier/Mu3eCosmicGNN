@@ -200,6 +200,7 @@ def plot_score_histogram(scores, y, bins=100, ax=None, inverse_dataset_length=1)
         ncol=np.unique(y).shape[0],
         title=None,
         frameon=False,
+        fontsize=10
     )
     
     return ax

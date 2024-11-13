@@ -77,6 +77,7 @@ class InteractionGNN(EdgeClassifierStage):
             batch_norm=hparams["batchnorm"],
             track_running_stats=hparams["track_running_stats"],
         )
+        print("Node encoder", self.node_encoder)
 
         # The edge network computes new edge features from connected nodes
         self.edge_encoder = make_mlp(
@@ -88,6 +89,7 @@ class InteractionGNN(EdgeClassifierStage):
             hidden_activation=hparams["hidden_activation"],
             track_running_stats=hparams["track_running_stats"],
         )
+        print("Edge encoder", self.edge_encoder)
 
         # The edge network computes new edge features from connected nodes
         if not hparams["edge_net_recurrent"]:
@@ -115,6 +117,7 @@ class InteractionGNN(EdgeClassifierStage):
                 hidden_activation=hparams["hidden_activation"],
                 track_running_stats=hparams["track_running_stats"],
             )
+            print("Edge network", self.edge_network)
 
         # The node network computes new node features
         if not hparams["node_net_recurrent"]:
@@ -142,6 +145,7 @@ class InteractionGNN(EdgeClassifierStage):
                 hidden_activation=hparams["hidden_activation"],
                 track_running_stats=hparams["track_running_stats"],
             )
+            print("Node network", self.node_network)
 
         # Final edge output classification network
         self.output_edge_classifier = make_mlp(
@@ -153,6 +157,7 @@ class InteractionGNN(EdgeClassifierStage):
             hidden_activation=hparams["hidden_activation"],
             track_running_stats=hparams["track_running_stats"],
         )
+        print("Output edge classifier", self.output_edge_classifier)
 
         self.save_hyperparameters(hparams)
 
@@ -165,6 +170,7 @@ class InteractionGNN(EdgeClassifierStage):
             ],
             dim=-1,
         )
+        #print("Edge messages", edge_messages.shape)
 
         node_inputs = torch.cat([x, edge_messages], dim=-1)
 
@@ -556,8 +562,8 @@ class InteractionGNN2(EdgeClassifierStage):
         ).float()
 
         # Same features on the 3 channels in the STRIP ENDCAP TODO: Process it in previous stage
-        mask = torch.logical_or(batch.region == 2, batch.region == 6).reshape(-1)
-        x[mask] = torch.cat([x[mask, 0:4], x[mask, 0:4], x[mask, 0:4]], dim=1)
+        #mask = torch.logical_or(batch.region == 2, batch.region == 6).reshape(-1)
+        #x[mask] = torch.cat([x[mask, 0:4], x[mask, 0:4], x[mask, 0:4]], dim=1)
         # print(x[:, 8:12])
 
         if "edge_features" in self.hparams and len(self.hparams) != 0:

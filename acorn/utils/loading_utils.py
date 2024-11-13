@@ -136,6 +136,9 @@ def handle_weighting(event, weighting_config):
         print(weights)
         print(weights[get_weight_mask(event, weight_spec["conditions"])])
         '''
+        print('Event:', event.event_id)
+        print(get_weight_mask(event, weight_spec["conditions"]).shape)
+        print(weights.shape)
         weights[get_weight_mask(event, weight_spec["conditions"])] = weight_val
 
     return weights

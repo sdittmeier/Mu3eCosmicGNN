@@ -325,14 +325,14 @@ def graph_scoring_efficiency(lightning_module, plot_config, config):
     target_purity = true_positive[graph_truth].sum() / pred.sum()
     cumulative_efficiency = true_positive.sum() / len(target_pt)
 
-    #return target_efficiency, target_purity
+    #return target_efficiency, target_purity, true_positive.sum(), len(target_pt[graph_truth]), true_positive[graph_truth].sum(), pred.sum()
 
     # get graph construction efficiency
     graph_construction_efficiency = graph_truth.mean()
 
     # Get the edgewise efficiency
     # Build a histogram of true pTs, and a histogram of true-positive pTs
-    pt_min, pt_max = 1, 50
+    pt_min, pt_max = 1, 100000
     if "pt_units" in plot_config and plot_config["pt_units"] == "MeV":
         pt_min, pt_max = pt_min * 1000, pt_max * 1000
     pt_bins = np.logspace(np.log10(pt_min), np.log10(pt_max), 10)
@@ -385,7 +385,10 @@ def graph_scoring_efficiency(lightning_module, plot_config, config):
         legend_text = legend_text + (f"Edge score cut: {config.get('score_cut')}, GNN trained on {config.get('trained_on')}")
     
         ax.grid()
-        ax.text(0.95, 0.10, legend_text, transform=ax.transAxes, fontsize=12, verticalalignment='bottom', horizontalalignment='right', bbox=dict(facecolor='white', alpha=0.5))
+        plt.tight_layout()
+        plt.savefig(os.path.join(config["filepath"], str(config["filename_template"])+'edgewise_eff.jpg'), dpi=800)
+        return
+        #ax.text(0.95, 0.10, legend_text, transform=ax.transAxes, fontsize=12, verticalalignment='bottom', horizontalalignment='right', bbox=dict(facecolor='white', alpha=0.5))
         '''
         # Save the plot
         atlasify(
@@ -422,6 +425,10 @@ def multi_edgecut_graph_scoring_efficiency(lightning_module, plot_config, config
     """
     eff = []
     pur = []
+    eff_up = []
+    eff_down = []
+    pur_up = []
+    pur_down = []
 
     filenames = [
         f"{plot_config['template_filename']}_{cut*100:.0f}"
@@ -433,11 +440,15 @@ def multi_edgecut_graph_scoring_efficiency(lightning_module, plot_config, config
         plot_config["filename"] = filename
         #graph_scoring_efficiency(lightning_module, plot_config, config_)
         
-        new_eff, new_pur = graph_scoring_efficiency(lightning_module, plot_config, config_)
+        new_eff, new_pur, new_eff_up, new_eff_down, new_pur_up, new_pur_down = graph_scoring_efficiency(lightning_module, plot_config, config_)
         eff.append(new_eff)
         pur.append(new_pur)
+        eff_up.append(new_eff_up)
+        eff_down.append(new_eff_down)
+        pur_up.append(new_pur_up)
+        pur_down.append(new_pur_down)
 
-    data = pd.DataFrame({"score_cuts": plot_config["score_cuts"], "eff": eff, "pur": pur})
+    data = pd.DataFrame({"score_cuts": plot_config["score_cuts"], "eff": eff, "pur": pur, "eff_up": eff_up, "eff_down": eff_down, "pur_up": pur_up, "pur_down": pur_down})
     data.to_csv(os.path.join(config["stage_dir"], "eff_pur_vs_scorecut.csv"), index=False)
 
     plt.plot(plot_config['score_cuts'], eff, label='Efficiency')
@@ -503,6 +514,46 @@ def graph_roc_curve(lightning_module, plot_config, config):
     fpr, tpr, _ = roc_curve(masked_y_truth, masked_scores)
     masked_auc_score = auc(fpr, tpr)
 
+    roc_dict = {"fpr": fpr, "tpr": tpr, "auc": masked_auc_score}
+    pd.DataFrame(roc_dict).to_csv(os.path.join(config["stage_dir"], "roc_curve.csv"), index=False)
+    
+    all_y_truth = all_y_truth.astype(np.int16)
+    all_y_truth[~masks] = 2
+
+    labels = np.array(["Fake"] * len(all_y_truth))
+    labels[all_y_truth == 1] = "Target True"
+    labels[all_y_truth == 2] = "Non-target True"
+    
+    target_true_scores = all_scores[labels == "Targ"]
+    non_target_true_scores = all_scores[labels == "Non-"]
+    false_scores = all_scores[labels == "Fake"]
+    
+    fig,ax = plt.subplots(figsize=(6, 5))
+    ax.hist(target_true_scores, bins=np.linspace(0,1,25), label='Target True', histtype='step', edgecolor='blue', linewidth=1.2)
+    ax.hist(target_true_scores, bins=np.linspace(0,1,25), histtype='stepfilled', alpha=0.1, color='blue')
+    ax.hist(false_scores, bins=np.linspace(0,1,25), label='Fake', histtype='step', edgecolor='red', linewidth=1.2)
+    ax.hist(false_scores, bins=np.linspace(0,1,25), histtype='stepfilled', alpha=0.1, color='red')
+    ax.hist(non_target_true_scores, bins=np.linspace(0,1,25), label='Non-target True', histtype='step', edgecolor='green', linewidth=1.2)
+    ax.hist(non_target_true_scores, bins=np.linspace(0,1,25), histtype='stepfilled', alpha=0.1, color='green')
+    ax.set_yscale('log')
+    ax.set_xlabel('Edge score')
+    ax.set_ylabel('Count')
+    ax.set_xlim(-0.05, 1.05)
+    ax.set_ylim(0.47, 1e7)
+    line, label = ax.get_legend_handles_labels()
+    fig.legend(line, label, loc='upper center', ncol=3, bbox_to_anchor=(0.5, 0.97))
+    '''
+    legend_text = (f"Dataset: {config.get('sample')}, "+str(config['data_split'][2])+' events from '+dataset_name+'\n')
+    legend_text = legend_text + ('GNN: 24 hidden dims, 4 msg passing steps, 2 edge layers, 2 node layers\n')
+    legend_text = legend_text + (f"GNN trained on {config.get('trained_on')}")
+    ax.grid()
+    ax.text(0.95, 0.95, legend_text, transform=ax.transAxes, fontsize=12, verticalalignment='top', horizontalalignment='right', bbox=dict(facecolor='white', alpha=0.5))
+    '''
+
+    plt.savefig(os.path.join(config["filepath"], str(config["filename_template"])+'score_dist.jpg'), dpi=800)
+    #plt.savefig(os.path.join(config["stage_dir"], 'score_distribution.pdf'), format='pdf')
+    
+    return
     # Plot the ROC curve
     ax.plot(fpr, tpr, color="green", label="ROC curve")
 

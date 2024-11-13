@@ -96,7 +96,7 @@ class EventReader:
 
         for dataset, dataset_name in zip(
             [self.valset, self.testset, self.trainset],
-            ["valset", "testset", "trainset"],
+            ["trainset", "valset", "testset"]
         ):
             if dataset is not None:
                 self._build_all_csv(dataset, dataset_name)
