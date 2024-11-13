@@ -1,6 +1,6 @@
 # condor_submit this_file.sub
 executable              = /mnt/data0/condor_ml.sh
-arguments               = "cosmicgnn /home/mue/karres/git/Mu3eCosmicGNN/examples/Cosmic_GNN/yaml_files acorn eval cm_gnn_eval.yaml -c /mnt/data1/karres/cosmics_test/cosmic_michel_gnn/artifacts/best-louo7ag3-val_loss=0.001297-epoch=59.ckpt"
+arguments               = "cosmicgnn /home/mue/karres/git/Mu3eCosmicGNN/examples/Cosmic_GNN/yaml_files acorn eval cm_c_gnn_eval.yaml -c /mnt/data1/karres/cosmics_test/cm_c_mixed_gnn/artifacts/best-pujwethr-val_loss=0.020120-epoch=94.ckpt"
 output                  = output/welcome_$(ClusterId)_$(ProcId).out
 error                   = error/welcome_$(ClusterId)_$(ProcId).err
 log                     = log/welcome_$(ClusterId).log
