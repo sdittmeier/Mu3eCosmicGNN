@@ -93,14 +93,20 @@ class EventReader:
         """
         Convert the full set of Athena events to CSV. This produces files in /trainset, /valset and /testset to ensure no overlaps.
         """
+        split_size_file = os.path.join(self.config["input_dir"], self.config["data_split_file"])
+        with open(split_size_file, 'w') as size_file:
+            for dataset, dataset_name in zip(
+                #[self.valset, self.testset, self.trainset],
+                [self.trainset, self.valset, self.testset],
+                ["trainset", "valset", "testset"]
+            ):
+                size_file.write(str(len(dataset))+"\n")
+                if dataset is not None:
+                    self._build_all_csv(dataset, dataset_name)
 
-        for dataset, dataset_name in zip(
-            #[self.valset, self.testset, self.trainset],
-            [self.trainset, self.valset, self.testset],
-            ["trainset", "valset", "testset"]
-        ):
-            if dataset is not None:
-                self._build_all_csv(dataset, dataset_name)
+        
+        #size_file.writelines([str(len(self.trainset)),",", str(len(self.valset)),",", str(len(self.testset))])
+        #size_file.close()
 
     def _build_all_csv(self, dataset, dataset_name):
         output_dir = os.path.join(self.config["stage_dir"], dataset_name)
