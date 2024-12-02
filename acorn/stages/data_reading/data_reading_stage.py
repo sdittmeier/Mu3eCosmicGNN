@@ -95,7 +95,8 @@ class EventReader:
         """
 
         for dataset, dataset_name in zip(
-            [self.valset, self.testset, self.trainset],
+            #[self.valset, self.testset, self.trainset],
+            [self.trainset, self.valset, self.testset],
             ["trainset", "valset", "testset"]
         ):
             if dataset is not None:
