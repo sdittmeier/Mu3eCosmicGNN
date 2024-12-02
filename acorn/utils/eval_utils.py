@@ -386,7 +386,9 @@ def graph_scoring_efficiency(lightning_module, plot_config, config):
     
         ax.grid()
         plt.tight_layout()
-        plt.savefig(os.path.join(config["filepath"], str(config["filename_template"])+'edgewise_eff.jpg'), dpi=800)
+        file_path=config["filepath"]
+        os.makedirs(file_path, exist_ok=True)
+        plt.savefig(os.path.join(file_path, str(config["filename_template"])+'edgewise_eff.jpg'), dpi=800)
         return
         #ax.text(0.95, 0.10, legend_text, transform=ax.transAxes, fontsize=12, verticalalignment='bottom', horizontalalignment='right', bbox=dict(facecolor='white', alpha=0.5))
         '''
