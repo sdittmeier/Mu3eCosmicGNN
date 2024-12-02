@@ -1,9 +1,10 @@
 # CommonFramework configuration
 stage: data_reading
 model: Mu3eCosmicReaderV2
-input_dir: /mnt/data1/tkar/cosmic_new/raw_data/
-input_file: /mnt/data1/tkar/cosmic_new/raw_data/split_files/split_filesaa.csv
-stage_dir: /mnt/data1/tkar/cosmic_new/feature_store/cosmic_f3_test/
+input_dir: /mnt/data1/tkar/cosmic_new/raw_data/split_cm/
+input_file: /mnt/data1/tkar/cosmic_new/raw_data/split_cm//split_cmaa.csv
+data_split_file: dataset_size_aa.csv
+stage_dir: /mnt/data1/tkar/cosmic_new/feature_store/cosmic_michel_f3/test/
 project: CosmicGNN # Used in logging
 
 max_workers: 128

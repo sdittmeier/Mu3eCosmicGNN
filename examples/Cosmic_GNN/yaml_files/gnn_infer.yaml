@@ -1,11 +1,11 @@
 stage: edge_classifier
 model: InteractionGNN
-input_dir: /mnt/data1/tkar/cosmic_new/fully_connected_graphs/cosmic_f3_test/ # points to the fully connected graphs obtained from graph_constr.yaml
-stage_dir: /mnt/data1/tkar/cosmic_new/gnn/cosmic_f3_test/infer_on_cosmic_only/cm_m_mixed_gnn # syntax for the path: sample_used/inferred_on/trained_on
+input_dir: /mnt/data1/tkar/cosmic_new/fully_connected_graphs/cosmic_michel_f3/test/
+stage_dir: /mnt/data1/tkar/cosmic_new/gnn/cosmic_michel_f3/test/cm_m_mixed_gnn
 project: CosmicGNN # Used in logging
 accelerator: gpu
 devices: [7]
 nodes: 1
 
-data_split: [10, 10, 1585]
-#data_split: [1,1,1]
+data_split: [108,14,14]
+#data_split: [108,14,14]
