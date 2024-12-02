@@ -1,20 +1,21 @@
 # CommonFramework configuration
 stage: graph_construction
 model: FullyConnected
-input_dir: /mnt/data1/karres/cosmics_test/feature_store_cosmic_michel/ # Should contain the files used in training and inference
-stage_dir: /mnt/data1/karres/cosmics_test/distance_cut_datasets/fully_connected_cosmic_michel_distance_cut_1000/
+input_dir: /mnt/data1/tkar/cosmic_new/feature_store/cosmic_f3_test/ # points to the feature store obtained from cosmic_reader_v2.yaml
+stage_dir: /mnt/data1/tkar/cosmic_new/fully_connected_graphs/cosmic_f3_test/ # directory containing fully connected graphs
 project: CosmicGNN # Used in logging
 
 # FC graph cuts put -1 to skip the cut
 ladder_cut: False #
 recurl_cut: False # basically weaker distance cut
-distance_cut: 1000 #[mm]
+distance_cut: -1 #[mm]
 angle_cut: -1  #units of pi
 
 
 # Number of [training, validation, testing] examples
 #data_split: [10596, 1324, 1324] # Cosmic unfiltered
-data_split: [10562, 1320, 1320] # Cosmic Michel unfiltered
+#data_split: [10562, 1320, 1320] # Cosmic Michel unfiltered
 #data_split: [15936, 1992, 1992] # Michel unfiltered
+data_split: [10, 10, 1589] # Michel unfiltered
 
 max_workers: 32

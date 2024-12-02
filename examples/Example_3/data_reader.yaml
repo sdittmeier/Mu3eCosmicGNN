@@ -1,9 +1,9 @@
 # CommonFramework configuration
 stage: data_reading
 model: TrackMLReader
-input_dir: /mnt/data1/karres/Example_3/trackml_100_events
-stage_dir: /mnt/data1/karres/Example_3/feature_store/
-detector_path: /mnt/data1/karres/Example_3/detectors.csv
+input_dir:  /mnt/data0/Trackml_dataset_100_events/Example_3
+stage_dir: /mnt/data1/tkar/Example_3/feature_store/
+detector_path:  /mnt/data0/Trackml_dataset_100_events/Example_3/detectors.csv
 max_workers: 32
 
 # Feature Configurations
