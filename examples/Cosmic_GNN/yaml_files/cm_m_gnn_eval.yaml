@@ -6,6 +6,7 @@ stage_dir: /mnt/data1/tkar/cosmic_new/gnn/cosmic_michel_f3/aa/cm_m_mixed_gnn
 project: CosmicGNN # Used in logging
 accelerator: gpu
 devices: [7]
+devices: [7]
 nodes: 1
 
 # Dataset parameters
@@ -26,7 +27,8 @@ target_tracks:
 # Plotting parameters
 plots:
   graph_scoring_efficiency:
-    title: Interaction GNN Edge-wise Efficiency (Cosmics w/ Michel)
+    #title: Interaction GNN Edge-wise Efficiency (Michel only)
+    title: Edge-wise Efficiency (Cosmics w/ Michel + Michel GNN)
     pt_units: MeV
   graph_roc_curve:
     title: Interaction GNN ROC curve (Cosmics w/ Michel)
