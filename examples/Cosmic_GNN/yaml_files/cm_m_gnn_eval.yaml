@@ -1,20 +1,20 @@
 # CommonFramework configuration
 stage: edge_classifier
 model: InteractionGNN
-input_dir: /mnt/data1/tkar/cosmic_new/fully_connected_graphs/cosmic_michel_f3/test/
-stage_dir: /mnt/data1/tkar/cosmic_new/gnn/cosmic_michel_f3/test/cm_m_mixed_gnn
+input_dir: /mnt/data1/tkar/cosmic_new/fully_connected_graphs/cosmic_michel_f3/aa/
+stage_dir: /mnt/data1/tkar/cosmic_new/gnn/cosmic_michel_f3/aa/cm_m_mixed_gnn
 project: CosmicGNN # Used in logging
 accelerator: gpu
 devices: [7]
 nodes: 1
 
 # Dataset parameters
-#data_split: [108,14,14]
-data_split: [108,14,14]
+#data_split: [121,122,963]
+data_split: [121,122,963]
 dataset: testset
 sample: Cosmic w/ Michel
 name: signal
-filepath: /mnt/data1/tkar/cosmic_new/results/edge_level/
+filepath: /mnt/data1/tkar/cosmic_new/results/edge_level/aa/
 filename_template: cm_m_gnn_signal_
 trained_on: Cosmic w/ Michel + Michel only mixed
 # Evaluation parameters

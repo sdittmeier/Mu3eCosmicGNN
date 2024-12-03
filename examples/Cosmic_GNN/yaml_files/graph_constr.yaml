@@ -1,8 +1,8 @@
 # CommonFramework configuration
 stage: graph_construction
 model: FullyConnected
-input_dir: /mnt/data1/tkar/cosmic_new/feature_store/cosmic_michel_f3/test/
-stage_dir: /mnt/data1/tkar/cosmic_new/fully_connected_graphs/cosmic_michel_f3/test/
+input_dir: /mnt/data1/tkar/cosmic_new/feature_store/cosmic_michel_f3/aa/
+stage_dir: /mnt/data1/tkar/cosmic_new/fully_connected_graphs/cosmic_michel_f3/aa/
 project: CosmicGNN # Used in logging
 
 # FC graph cuts put -1 to skip the cut
@@ -13,6 +13,6 @@ angle_cut: -1  #units of pi
 
 
 # Number of [training, validation, testing] examples
-data_split: [108,14,14]
+data_split: [123,123,981]
 
 max_workers: 32
