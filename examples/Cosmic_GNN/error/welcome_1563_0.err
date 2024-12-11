@@ -1,80 +1,0 @@
-/var/lib/condor/execute/dir_2474148/condor_ml.sh: line 44: 4: No such file or directory
-WARNING:root:FRNN is not available, install it at https://github.com/murnanedaniel/FRNN. Using PyG radius instead.
-wandb: Currently logged in as: karres (heidelberg_atlas_pi). Use `wandb login --relogin` to force relogin
-wandb: wandb version 0.17.0 is available!  To upgrade, please run:
-wandb:  $ pip install wandb --upgrade
-wandb: Tracking run with wandb version 0.16.4
-wandb: Run data is saved locally in /mnt/data1/karres/Example_3/metric_learning/wandb/run-20240524_101935-85dpf3g9
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run graceful-dream-55
-wandb: ⭐️ View project at https://wandb.ai/heidelberg_atlas_pi/CF_Example_3_MetricLearning
-wandb: 🚀 View run at https://wandb.ai/heidelberg_atlas_pi/CF_Example_3_MetricLearning/runs/85dpf3g9
-GPU available: True (cuda), used: True
-TPU available: False, using: 0 TPU cores
-IPU available: False, using: 0 IPUs
-HPU available: False, using: 0 HPUs
-You are using a CUDA device ('NVIDIA RTX A6000') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
-Initializing distributed: GLOBAL_RANK: 0, MEMBER: 1/1
-----------------------------------------------------------------------------------------------------
-distributed_backend=nccl
-All distributed processes registered. Starting with 1 processes
-----------------------------------------------------------------------------------------------------
-
-/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/utils/loading_utils.py:80: UserWarning: OPTIONAL feature [pid] not found in data
-  warnings.warn(f"OPTIONAL feature [{feature}] not found in data")
-/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/utils/loading_utils.py:80: UserWarning: OPTIONAL feature [n_hits] not found in data
-  warnings.warn(f"OPTIONAL feature [{feature}] not found in data")
-/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/utils/loading_utils.py:80: UserWarning: OPTIONAL feature [primary] not found in data
-  warnings.warn(f"OPTIONAL feature [{feature}] not found in data")
-/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/utils/loading_utils.py:80: UserWarning: OPTIONAL feature [pdg_id] not found in data
-  warnings.warn(f"OPTIONAL feature [{feature}] not found in data")
-/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/utils/loading_utils.py:80: UserWarning: OPTIONAL feature [ghost] not found in data
-  warnings.warn(f"OPTIONAL feature [{feature}] not found in data")
-/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/utils/loading_utils.py:80: UserWarning: OPTIONAL feature [shared] not found in data
-  warnings.warn(f"OPTIONAL feature [{feature}] not found in data")
-/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/utils/loading_utils.py:80: UserWarning: OPTIONAL feature [module_id] not found in data
-  warnings.warn(f"OPTIONAL feature [{feature}] not found in data")
-/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/utils/loading_utils.py:80: UserWarning: OPTIONAL feature [region_id] not found in data
-  warnings.warn(f"OPTIONAL feature [{feature}] not found in data")
-/misc/home/mue/karres/git/Mu3eCosmicGNN/acorn/utils/loading_utils.py:80: UserWarning: OPTIONAL feature [hit_id] not found in data
-  warnings.warn(f"OPTIONAL feature [{feature}] not found in data")
-LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
-
-  | Name    | Type       | Params
----------------------------------------
-0 | network | Sequential | 3.2 M 
----------------------------------------
-3.2 M     Trainable params
-0         Non-trainable params
-3.2 M     Total params
-12.698    Total estimated model params size (MB)
-`Trainer.fit` stopped: `max_epochs=100` reached.
-wandb: - 0.028 MB of 0.028 MB uploadedwandb: \ 0.028 MB of 0.028 MB uploadedwandb: WARNING No program path found, not creating job artifact. See https://docs.wandb.ai/guides/launch/create-job
-wandb: | 0.028 MB of 0.028 MB uploadedwandb: / 0.037 MB of 0.042 MB uploadedwandb: - 0.037 MB of 0.042 MB uploadedwandb: \ 0.037 MB of 0.042 MB uploadedwandb: | 0.037 MB of 0.042 MB uploadedwandb: / 0.037 MB of 0.042 MB uploadedwandb: - 0.042 MB of 0.042 MB uploadedwandb: 
-wandb: Run history:
-wandb:               epoch ▁▁▁▁▂▂▂▂▂▃▃▃▃▃▃▄▄▄▄▄▅▅▅▅▅▅▆▆▆▆▆▇▇▇▇▇▇███
-wandb:                  f1 ▁▁▁▂▆▆▅▆▇▇▇▇▇▇▇▇▇▇██████████████████████
-wandb:                  lr ▂▅██▆▆▆▆▄▄▄▄▃▃▃▃▃▃▃▃▂▂▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁
-wandb:          signal_eff ▁▆██████████████████████████████████████
-wandb:          signal_pur ▁▁▁▂▅▆▅▆▇▇▇▇▇▇▇▇▇▇██████████████████████
-wandb:           total_eff ▁▆██████████████████████████████████████
-wandb:           total_pur ▁▁▁▂▅▆▅▆▇▇▇▇▇▇▇▇▇▇██████████████████████
-wandb:          train_loss █▃▂▄▃▂▂▂▂▁▂▁▂▂▂▂▂▂▃▂▃▂▂▁▁▂▂▃▂▂▂▄▁▂▂▁▂▁▂▂
-wandb: trainer/global_step ▁▁▁▁▂▂▂▂▂▃▃▃▃▃▃▄▄▄▄▄▅▅▅▅▅▆▆▆▆▆▆▆▇▇▇▇▇███
-wandb:            val_loss ▁█▂▃▅▄▃▄▅▅▅▅▅▅▄▄▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅
-wandb: 
-wandb: Run summary:
-wandb:               epoch 99
-wandb:                  f1 0.34236
-wandb:                  lr 0.00028
-wandb:          signal_eff 0.99455
-wandb:          signal_pur 0.20687
-wandb:           total_eff 0.99453
-wandb:           total_pur 0.20719
-wandb:          train_loss 0.00855
-wandb: trainer/global_step 7999
-wandb:            val_loss 0.00871
-wandb: 
-wandb: 🚀 View run graceful-dream-55 at: https://wandb.ai/heidelberg_atlas_pi/CF_Example_3_MetricLearning/runs/85dpf3g9
-wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
-wandb: Find logs at: /mnt/data1/karres/Example_3/metric_learning/wandb/run-20240524_101935-85dpf3g9/logs
