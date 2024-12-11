@@ -119,9 +119,14 @@ class FullyConnected(GraphConstructionStage):
         return torch.tensor(truth_map)
     
     def _fc_cuts(self, edges, truth):
-        edges = self._ladder_cut(edges, truth)
-        edges = self._recurl_cut(edges, truth)
-
+        if self.hparams['ladder_cut']:
+            edges = self._ladder_cut(edges, truth)
+        if self.hparams['recurl_cut']:
+            edges = self._recurl_cut(edges, truth)
+        if self.hparams['distance_cut'] > 0:
+            edges = self._distance_cut(edges, truth, self.hparams['distance_cut'])
+        if self.hparams['angle_cut'] > 0:
+            edges = self._angle_cut(edges, truth, self.hparams['angle_cut'])
         return edges
     
     def _ladder_cut(self, edges, truth):
@@ -154,4 +159,46 @@ class FullyConnected(GraphConstructionStage):
 
         edges = np.array(new_edges)
     
+        return edges
+    
+    def _distance_cut(self, edges, truth, cut_at=400):
+        new_edges = []
+
+        for edge in edges:
+            hit1 = truth[truth['hit_id'] == edge[0]]
+            hit2 = truth[truth['hit_id'] == edge[1]]
+
+            distance = np.sqrt((hit1['x'].values - hit2['x'].values)**2 + (hit1['y'].values - hit2['y'].values)**2 + (hit1['z'].values - hit2['z'].values)**2)
+
+            if distance < cut_at:
+                new_edges.append(edge)
+
+        edges = np.array(new_edges)
+
+        return edges
+    
+    def _angle_cut(self, edges, truth, cut_at=np.pi/2):
+        new_edges = []
+
+        for edge in edges:
+            hit1 = truth[truth['hit_id'] == edge[0]]
+            hit2 = truth[truth['hit_id'] == edge[1]]
+
+            x1 = hit1['x'].values
+            y1 = hit1['y'].values
+            z1 = hit1['z'].values
+            
+            x2 = hit2['x'].values
+            y2 = hit2['y'].values
+            z2 = hit2['z'].values  
+
+            distance = np.sqrt((x1-x2)**2 + (y1-y2)**2 + (z1-z2)**2)
+            y = np.abs(y2-y1)
+            angle = np.arccos(y/distance)
+
+            if angle < np.pi*cut_at:
+                new_edges.append(edge)
+
+        edges = np.array(new_edges)
+
         return edges

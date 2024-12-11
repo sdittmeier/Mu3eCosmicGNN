@@ -96,7 +96,7 @@ class EventReader:
 
         for dataset, dataset_name in zip(
             [self.valset, self.testset, self.trainset],
-            ["valset", "testset", "trainset"],
+            ["trainset", "valset", "testset"]
         ):
             if dataset is not None:
                 self._build_all_csv(dataset, dataset_name)
@@ -349,7 +349,7 @@ class EventReader:
                             hits[f"cluster_r_{i}"],
                             hits[f"cluster_z_{i}"],
                         )
-
+        '''
         # Apply pixel region adjustments if applicable
         pixel_regions_idx = self.get_pixel_regions_index(hits)
         for feature in ["r", "phi", "eta"]:
@@ -358,7 +358,7 @@ class EventReader:
                     hits.loc[pixel_regions_idx, f"cluster_{feature}_{i}"] = hits.loc[
                         pixel_regions_idx, feature
                     ]
-
+        '''
         return hits
 
     def _build_true_tracks(self, hits):

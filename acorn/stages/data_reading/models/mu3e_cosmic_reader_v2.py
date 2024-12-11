@@ -44,7 +44,7 @@ def process_hits(hits):
     hits['radius'] = np.sqrt(hits["vx"] ** 2 + hits["vy"] ** 2)
 
     #Assign nhits
-    hits['nhits'] = len(hits['x'])
+    hits['nhits'] = hits.groupby('particle_id')['particle_id'].transform('count')
 
     #Assign hit_ids
     hits['hit_id'] = list(range(0,len(hits['x'])))
@@ -56,7 +56,6 @@ def process_hits(hits):
     
     #Assign charge
     hits['q'] = np.where(hits['particle_type'] > 0, 1, -1)
-
     return hits
 
 class Mu3eCosmicReaderV2(EventReader):
@@ -70,7 +69,8 @@ class Mu3eCosmicReaderV2(EventReader):
         self.raw_events = self.raw_events[self.raw_events['pid'] != 11]
         self.raw_events = self.raw_events[self.raw_events['pid'] != -11]
         '''
-        
+        self.raw_events = self.raw_events[self.raw_events['pid'] != 0]
+
         self.event_id_list = self.raw_events['event'].unique() # List of all unique eIDs
 
         # Split the data by 80/10/10: train/val/test -> train,val,test are lists of eIDs

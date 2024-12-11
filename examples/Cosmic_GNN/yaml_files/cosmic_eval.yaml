@@ -1,0 +1,23 @@
+# CommonFramework configuration
+stage: graph_construction
+model: FullyConnected
+input_dir: /mnt/data1/karres/cosmics_test/feature_store_cosmic_michel/ # Should contain the files used in training and inference
+stage_dir: /mnt/data1/karres/cosmics_test/fully_connected_cosmic_michel_recurl_only/ # A directory to be created that will store logs, artifacts, and output data
+project: CosmicGNN # Used in logging
+
+# Dataset parameters
+data_split: [10596, 1324, 1324] # Number of [training, validation, testing] examples
+
+# Evaluation parameters
+target_tracks: 
+  pt: [1., .inf]
+  nhits: [3., .inf]
+
+# Plotting parameters
+plots:
+  fc_efficiency_purity: 
+    title: "Fully Connected Efficiency and Purity (Cosmics with Michel, recurl cut only))"
+    filename: "fc_efficiency_purity.png"
+  fc_edge_distributions:
+    title: "Fully Connected Distances and Angles Between Nodes (Cosmics with Michel, recurl cut only)"
+    filename: "fc_edge_distributions.png"

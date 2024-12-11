@@ -1,0 +1,19 @@
+# condor_submit this_file.sub
+executable              = /mnt/data0/condor_ml.sh
+arguments               = "cosmicgnn /home/mue/karres/git/Mu3eCosmicGNN/examples/Cosmic_GNN/yaml_files wandb agent heidelberg_atlas_pi/CosmicGNN/0csq6ylw"
+output                  = output/welcome_$(ClusterId)_$(ProcId).out
+error                   = error/welcome_$(ClusterId)_$(ProcId).err
+log                     = log/welcome_$(ClusterId).log
+
+should_transfer_files   = YES
+when_to_transfer_output = ON_EXIT
+
+# CPUS = GPUS * 72 (maximises efficiency for eg metric learning, but requires too many CPUs/GPU once we have 8 installed)
+request_cpus            = 32
+# once we have 8 GPUs, this should be the maximum, unless really needed
+request_gpus            = 1
+request_memory          = 32G
+
+request_disk            = 5G
+
+queue

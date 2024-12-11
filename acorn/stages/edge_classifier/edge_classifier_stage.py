@@ -364,10 +364,13 @@ class EdgeClassifierStage(LightningModule):
         all_true_positive = (all_truth.bool() & preds).sum().float()
 
         # add torch.sigmoid(output).float() to convert to float in case training is done with 16-bit precision
-        target_auc = roc_auc_score(
-            target_truth.bool().cpu().detach(),
-            scores.float().cpu().detach(),
-        )
+        # check that there is more than 1 class present in target_truth
+        target_auc = 0 # default value if not applicable
+        if target_truth.unique().shape[0] > 1:
+            target_auc = roc_auc_score(
+                target_truth.bool().cpu().detach(),
+                scores.float().cpu().detach(),
+            )
         true_and_fake_positive = (
             edge_positive - (preds & (~target_truth) & all_truth).sum().float()
         )
