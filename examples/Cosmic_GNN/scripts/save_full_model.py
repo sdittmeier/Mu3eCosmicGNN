@@ -315,6 +315,8 @@ def main(config, checkpoint, output, tag, stage, model_name, torch_script, torch
             print("ref ",output.cpu().detach().numpy()[mask])
         else:
             print("Output of onnx runtime inference is close to reference")
+            print("onnx",onnx_outputs[0][:10])
+            print("ref ",output.cpu().detach().numpy()[:10])
 
         print(f"Done saving model to {onnx_path}")
 
