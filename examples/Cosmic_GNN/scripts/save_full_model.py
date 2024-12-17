@@ -135,8 +135,9 @@ def main(config, checkpoint, output, tag, stage, model_name, torch_script, torch
 
     # fix seed for torch
     edge_index = torch.randint(0, 100, (2, num_edges)).to(torch.int64).cuda()
-    print(edge_index.shape)
-    print(node_features[0])
+    print(edge_index)
+    print(node_features)
+    #return
 
     # creating batch that can hold a graph
     #batch = torch_geometric.data.Data()
@@ -177,8 +178,8 @@ def main(config, checkpoint, output, tag, stage, model_name, torch_script, torch
     print(model)
 
     output = model(*input_data)
-    print("output shape:", output.shape)
-    print("output:", output[:10])
+    print("output shape:", output[0].shape)
+    print("output:", output[0])
     print("sucessfully run model!")
 
     ##########################
@@ -298,7 +299,11 @@ def main(config, checkpoint, output, tag, stage, model_name, torch_script, torch
             input_data[1].cpu().detach().numpy(),
 #            input_data[2].cpu().detach().numpy()
         )
-        
+
+        print("Checking the model")
+        print(onnx.checker.check_model(onnx.load(onnx_path)))
+        print("Model is checked")
+
         import onnxruntime as ort
         session = ort.InferenceSession(onnx_path)
         onnx_outputs = session.run(None, 
@@ -307,16 +312,16 @@ def main(config, checkpoint, output, tag, stage, model_name, torch_script, torch
                                   'edge_index': input_data[1], 
  #                                 'edge_attr': input_data[2]
                               })
-
-        if not np.isclose(onnx_outputs[0], output.cpu().detach().numpy(), rtol=0.0, atol=1.e-3).all():
+        print(len(onnx_outputs[0]))
+        if not np.isclose(onnx_outputs[0], output[0].cpu().detach().numpy(), rtol=0.0, atol=1.e-3).all():
             print("WARNING      ONNX inference output is not close with 1.e-3")
             mask = ~np.isclose(onnx_outputs[0], output.cpu().detach().numpy())
             print("onnx",onnx_outputs[0][mask])
-            print("ref ",output.cpu().detach().numpy()[mask])
+            print("ref ",output[0].cpu().detach().numpy()[mask])
         else:
             print("Output of onnx runtime inference is close to reference")
             print("onnx",onnx_outputs[0][:10])
-            print("ref ",output.cpu().detach().numpy()[:10])
+            print("ref ",output[0].cpu().detach().numpy()[:10])
 
         print(f"Done saving model to {onnx_path}")
 
