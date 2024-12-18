@@ -6,7 +6,6 @@ stage_dir: /mnt/data1/tkar/cosmic_new/gnn/cosmic_michel_f3/aa/cm_m_mixed_gnn
 project: CosmicGNN # Used in logging
 accelerator: gpu
 devices: [7]
-devices: [7]
 nodes: 1
 
 # Dataset parameters
